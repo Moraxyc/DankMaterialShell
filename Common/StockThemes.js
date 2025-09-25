@@ -10,7 +10,8 @@ const CatppuccinMocha = {
     backgroundText: "#cdd6f4",
     outline: "#6c7086",
     surfaceContainer: "#313244",
-    surfaceContainerHigh: "#585b70"
+    surfaceContainerHigh: "#585b70",
+    surfaceContainerHighest: "#7f849c"
 }
 
 const CatppuccinLatte = {
@@ -22,7 +23,8 @@ const CatppuccinLatte = {
     backgroundText: "#4c4f69",
     outline: "#9ca0b0",
     surfaceContainer: "#ccd0da",
-    surfaceContainerHigh: "#acb0be"
+    surfaceContainerHigh: "#acb0be",
+    surfaceContainerHighest: "#8c8fa1"
 }
 
 const CatppuccinVariants = {
@@ -127,7 +129,8 @@ const StockThemes = {
             backgroundText: "#e3e8ef",
             outline: "#8e918f",
             surfaceContainer: "#1e2023",
-            surfaceContainerHigh: "#292b2f"
+            surfaceContainerHigh: "#292b2f",
+            surfaceContainerHighest: "#343740"
         },
         purple: {
             name: "Purple",
@@ -144,7 +147,8 @@ const StockThemes = {
             backgroundText: "#E6E0E9",
             outline: "#938F99",
             surfaceContainer: "#1D1B20",
-            surfaceContainerHigh: "#2B2930"
+            surfaceContainerHigh: "#2B2930",
+            surfaceContainerHighest: "#36343B"
         },
         green: {
             name: "Green",
@@ -161,7 +165,8 @@ const StockThemes = {
             backgroundText: "#e1f5e3",
             outline: "#8b938c",
             surfaceContainer: "#1a1f1b",
-            surfaceContainerHigh: "#252a26"
+            surfaceContainerHigh: "#252a26",
+            surfaceContainerHighest: "#30352f"
         },
         orange: {
             name: "Orange",
@@ -178,7 +183,8 @@ const StockThemes = {
             backgroundText: "#f5f1ea",
             outline: "#958f84",
             surfaceContainer: "#211e17",
-            surfaceContainerHigh: "#2c291f"
+            surfaceContainerHigh: "#2c291f",
+            surfaceContainerHighest: "#373427"
         },
         red: {
             name: "Red",
@@ -195,7 +201,8 @@ const StockThemes = {
             backgroundText: "#f5e8ea",
             outline: "#958b8d",
             surfaceContainer: "#211b1c",
-            surfaceContainerHigh: "#2c2426"
+            surfaceContainerHigh: "#2c2426",
+            surfaceContainerHighest: "#372f30"
         },
         cyan: {
             name: "Cyan",
@@ -212,7 +219,8 @@ const StockThemes = {
             backgroundText: "#e8f4f5",
             outline: "#8c9194",
             surfaceContainer: "#1a1f20",
-            surfaceContainerHigh: "#252b2c"
+            surfaceContainerHigh: "#252b2c",
+            surfaceContainerHighest: "#303637"
         },
         pink: {
             name: "Pink",
@@ -229,7 +237,8 @@ const StockThemes = {
             backgroundText: "#f3e8ee",
             outline: "#938a90",
             surfaceContainer: "#1f1b1e",
-            surfaceContainerHigh: "#2a2428"
+            surfaceContainerHigh: "#2a2428",
+            surfaceContainerHighest: "#352f32"
         },
         amber: {
             name: "Amber",
@@ -246,7 +255,8 @@ const StockThemes = {
             backgroundText: "#f3f0e8",
             outline: "#949084",
             surfaceContainer: "#1f1e17",
-            surfaceContainerHigh: "#2a281f"
+            surfaceContainerHigh: "#2a281f",
+            surfaceContainerHighest: "#353327"
         },
         coral: {
             name: "Coral",
@@ -263,7 +273,8 @@ const StockThemes = {
             backgroundText: "#f1e8e7",
             outline: "#968b8a",
             surfaceContainer: "#201a19",
-            surfaceContainerHigh: "#2b2221"
+            surfaceContainerHigh: "#2b2221",
+            surfaceContainerHighest: "#362d29"
         },
         monochrome: {
             name: "Monochrome",
@@ -281,6 +292,7 @@ const StockThemes = {
             outline: "#929092",
             surfaceContainer: "#2a2a2a",
             surfaceContainerHigh: "#2a2a2b",
+            surfaceContainerHighest: "#353535",
             error: "#ffb4ab",
             warning: "#3f4759",
             info: "#595e6c",
@@ -303,7 +315,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         purple: {
             name: "Purple Light",
@@ -320,7 +333,8 @@ const StockThemes = {
             backgroundText: "#1C1B1F",
             outline: "#79747E",
             surfaceContainer: "#F3EDF7",
-            surfaceContainerHigh: "#ECE6F0"
+            surfaceContainerHigh: "#ECE6F0",
+            surfaceContainerHighest: "#E6DFE9"
         },
         green: {
             name: "Green Light",
@@ -337,7 +351,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         orange: {
             name: "Orange Light",
@@ -354,7 +369,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         red: {
             name: "Red Light",
@@ -371,7 +387,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         cyan: {
             name: "Cyan Light",
@@ -388,7 +405,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         pink: {
             name: "Pink Light",
@@ -405,7 +423,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         amber: {
             name: "Amber Light",
@@ -422,7 +441,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         coral: {
             name: "Coral Light",
@@ -439,7 +459,8 @@ const StockThemes = {
             backgroundText: "#1a1c1e",
             outline: "#79747e",
             surfaceContainer: "#f3f3f3",
-            surfaceContainerHigh: "#ececec"
+            surfaceContainerHigh: "#ececec",
+            surfaceContainerHighest: "#e6e6e6"
         },
         monochrome: {
             name: "Monochrome Light",

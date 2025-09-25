@@ -120,6 +120,7 @@ Singleton {
                 "outline": getMatugenColor("outline", "#8e918f"),
                 "surfaceContainer": getMatugenColor("surface_container", "#1e2023"),
                 "surfaceContainerHigh": getMatugenColor("surface_container_high", "#292b2f"),
+                "surfaceContainerHighest": getMatugenColor("surface_container_highest", "#343740"),
                 "error": "#F2B8B5",
                 "warning": "#FF9800",
                 "info": "#2196F3",
@@ -154,7 +155,12 @@ Singleton {
     property color primaryText: currentThemeData.primaryText
     property color primaryContainer: currentThemeData.primaryContainer
     property color secondary: currentThemeData.secondary
-    property color surface: currentThemeData.surface
+    property color surface: {
+        if (typeof SettingsData !== "undefined" && SettingsData.surfaceBase === "s") {
+            return currentThemeData.background
+        }
+        return currentThemeData.surface
+    }
     property color surfaceText: currentThemeData.surfaceText
     property color surfaceVariant: currentThemeData.surfaceVariant
     property color surfaceVariantText: currentThemeData.surfaceVariantText
@@ -163,8 +169,24 @@ Singleton {
     property color backgroundText: currentThemeData.backgroundText
     property color outline: currentThemeData.outline
     property color outlineVariant: currentThemeData.outlineVariant || Qt.rgba(outline.r, outline.g, outline.b, 0.6)
-    property color surfaceContainer: currentThemeData.surfaceContainer
-    property color surfaceContainerHigh: currentThemeData.surfaceContainerHigh
+    property color surfaceContainer: {
+        if (typeof SettingsData !== "undefined" && SettingsData.surfaceBase === "s") {
+            return currentThemeData.surface
+        }
+        return currentThemeData.surfaceContainer
+    }
+    property color surfaceContainerHigh: {
+        if (typeof SettingsData !== "undefined" && SettingsData.surfaceBase === "s") {
+            return currentThemeData.surfaceContainer
+        }
+        return currentThemeData.surfaceContainerHigh
+    }
+    property color surfaceContainerHighest: {
+        if (typeof SettingsData !== "undefined" && SettingsData.surfaceBase === "s") {
+            return currentThemeData.surfaceContainerHigh
+        }
+        return currentThemeData.surfaceContainerHighest
+    }
 
     property color onSurface: surfaceText
     property color onSurfaceVariant: surfaceVariantText
@@ -367,7 +389,7 @@ Singleton {
     property real notepadTransparency: SettingsData.notepadTransparencyOverride >= 0 ? SettingsData.notepadTransparencyOverride : popupTransparency
 
     property var widgetBaseBackgroundColor: {
-        const colorMode = typeof SettingsData !== "undefined" ? SettingsData.widgetBackgroundColor : "sth"
+        const colorMode = typeof SettingsData !== "undefined" ? SettingsData.widgetBackgroundColor : "sch"
         switch (colorMode) {
             case "s":
                 return surface
@@ -388,7 +410,7 @@ Singleton {
     }
 
     property var widgetBackground: {
-        const colorMode = typeof SettingsData !== "undefined" ? SettingsData.widgetBackgroundColor : "sth"
+        const colorMode = typeof SettingsData !== "undefined" ? SettingsData.widgetBackgroundColor : "sch"
         switch (colorMode) {
             case "s":
                 return Qt.rgba(surface.r, surface.g, surface.b, widgetTransparency)
@@ -541,7 +563,8 @@ Singleton {
             "value": value,
             "mode": isLight ? "light" : "dark",
             "iconTheme": iconTheme || "System Default",
-            "matugenType": matugenType || "scheme-tonal-spot"
+            "matugenType": matugenType || "scheme-tonal-spot",
+            "surfaceBase": (typeof SettingsData !== "undefined" && SettingsData.surfaceBase) ? SettingsData.surfaceBase : "sc"
         }
 
         const json = JSON.stringify(desired)

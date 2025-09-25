@@ -130,7 +130,8 @@ Singleton {
     property bool topBarGothCornersEnabled: false
     property bool lockScreenShowPowerActions: true
     property bool hideBrightnessSlider: false
-    property string widgetBackgroundColor: "sth"
+    property string widgetBackgroundColor: "sch"
+    property string surfaceBase: "sc"
     property int notificationTimeoutLow: 5000
     property int notificationTimeoutNormal: 5000
     property int notificationTimeoutCritical: 0
@@ -323,7 +324,8 @@ Singleton {
                 topBarGothCornersEnabled = settings.topBarGothCornersEnabled !== undefined ? settings.topBarGothCornersEnabled : false
                 lockScreenShowPowerActions = settings.lockScreenShowPowerActions !== undefined ? settings.lockScreenShowPowerActions : true
                 hideBrightnessSlider = settings.hideBrightnessSlider !== undefined ? settings.hideBrightnessSlider : false
-                widgetBackgroundColor = settings.widgetBackgroundColor !== undefined ? settings.widgetBackgroundColor : "sth"
+                widgetBackgroundColor = settings.widgetBackgroundColor !== undefined ? settings.widgetBackgroundColor : "sch"
+                surfaceBase = settings.surfaceBase !== undefined ? settings.surfaceBase : "sc"
                 screenPreferences = settings.screenPreferences !== undefined ? settings.screenPreferences : ({})
                 applyStoredTheme()
                 detectAvailableIconThemes()
@@ -433,6 +435,7 @@ Singleton {
                                                 "lockScreenShowPowerActions": lockScreenShowPowerActions,
                                                 "hideBrightnessSlider": hideBrightnessSlider,
                                                 "widgetBackgroundColor": widgetBackgroundColor,
+                                                "surfaceBase": surfaceBase,
                                                 "notificationTimeoutLow": notificationTimeoutLow,
                                                 "notificationTimeoutNormal": notificationTimeoutNormal,
                                                 "notificationTimeoutCritical": notificationTimeoutCritical,
@@ -1052,6 +1055,14 @@ Singleton {
     function setWidgetBackgroundColor(color) {
         widgetBackgroundColor = color
         saveSettings()
+    }
+
+    function setSurfaceBase(base) {
+        surfaceBase = base
+        saveSettings()
+        if (typeof Theme !== "undefined") {
+            Theme.generateSystemThemesFromCurrentTheme()
+        }
     }
 
     function setScreenPreferences(prefs) {

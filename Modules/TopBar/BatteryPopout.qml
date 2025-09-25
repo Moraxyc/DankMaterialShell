@@ -304,9 +304,8 @@ DankPopout {
                         width: (parent.width - Theme.spacingM) / 2
                         height: 64
                         radius: Theme.cornerRadius
-                        color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.08)
-                        border.color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.2)
-                        border.width: 1
+                        color: Theme.surfaceContainerHigh
+                        border.width: 0
 
                         Column {
                             anchors.centerIn: parent
@@ -340,9 +339,8 @@ DankPopout {
                         width: (parent.width - Theme.spacingM) / 2
                         height: 64
                         radius: Theme.cornerRadius
-                        color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.08)
-                        border.color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.2)
-                        border.width: 1
+                        color: Theme.surfaceContainerHigh
+                        border.width: 0
 
                         Column {
                             anchors.centerIn: parent

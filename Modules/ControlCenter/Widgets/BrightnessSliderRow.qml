@@ -80,7 +80,7 @@ Row {
             }
         }
         thumbOutlineColor: Theme.surfaceContainer
-        trackColor: Qt.rgba(Theme.surfaceVariant.r, Theme.surfaceVariant.g, Theme.surfaceVariant.b, Theme.getContentBackgroundAlpha() * 0.60)
+        trackColor: Theme.surfaceContainerHigh
     }
 
     Menu {

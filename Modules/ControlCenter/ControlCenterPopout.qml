@@ -49,7 +49,7 @@ DankPopout {
         }
     }
 
-    readonly property color _containerBg: Qt.rgba(Theme.surfaceVariant.r, Theme.surfaceVariant.g, Theme.surfaceVariant.b, Theme.getContentBackgroundAlpha() * 0.60)
+    readonly property color _containerBg: Theme.surfaceContainerHigh
 
     function setTriggerPosition(x, y, width, section, screen) {
         StateUtils.setTriggerPosition(root, x, y, width, section, screen)
