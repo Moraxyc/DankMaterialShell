@@ -3,8 +3,9 @@ import qs.Common
 import qs.Services
 import qs.Modules.ControlCenter.Widgets
 import qs.Modules.ControlCenter.Components
+import "../utils/layout.js" as LayoutUtils
 
-Item {
+Column {
     id: root
 
     property bool editMode: false
@@ -18,66 +19,23 @@ Item {
     signal moveWidget(int fromIndex, int toIndex)
     signal toggleWidgetSize(int index)
 
-    readonly property int gridColumns: 4
-    readonly property real cellWidth: (width - (gridSpacing + 1) * (gridColumns - 1)) / gridColumns
-    readonly property real cellHeight: 60
-    readonly property real gridSpacing: 4
+    spacing: editMode ? Theme.spacingL : Theme.spacingS
 
-    height: {
-        const dummy = [SettingsData.controlCenterWidgets?.length, widgetPositions.length]
-        return calculateGridHeight() + (detailHost.active ? detailHost.height + Theme.spacingL : 0)
+    property var currentRowWidgets: []
+    property real currentRowWidth: 0
+    property int expandedRowIndex: -1
+
+    function calculateRowsAndWidgets() {
+        return LayoutUtils.calculateRowsAndWidgets(root, expandedSection, expandedWidgetIndex)
     }
 
-    function calculateGridHeight() {
-        const widgets = SettingsData.controlCenterWidgets || []
-        if (widgets.length === 0)
-            return 0
-
-        let rows = []
-        let currentRow = []
-        let currentWidth = 0
-        const spacing = gridSpacing
-        const baseWidth = width
-
-        for (var i = 0; i < widgets.length; i++) {
-            const widget = widgets[i]
-            const widgetWidth = widget.width || 50
-
-            let itemWidth
-            if (widgetWidth <= 25) {
-                itemWidth = (baseWidth - spacing * 3) / 4
-            } else if (widgetWidth <= 50) {
-                itemWidth = (baseWidth - spacing) / 2
-            } else if (widgetWidth <= 75) {
-                itemWidth = (baseWidth - spacing * 2) * 0.75
-            } else {
-                itemWidth = baseWidth
-            }
-
-            if (currentRow.length > 0 && (currentWidth + spacing + itemWidth > baseWidth)) {
-                rows.push([...currentRow])
-                currentRow = [widget]
-                currentWidth = itemWidth
-            } else {
-                currentRow.push(widget)
-                currentWidth += (currentRow.length > 1 ? spacing : 0) + itemWidth
-            }
-        }
-
-        if (currentRow.length > 0) {
-            rows.push(currentRow)
-        }
-
-        return rows.length * cellHeight + (rows.length > 0 ? (rows.length - 1) * spacing : 0)
+    property var layoutResult: {
+        const dummy = [expandedSection, expandedWidgetIndex, model?.controlCenterWidgets]
+        return calculateRowsAndWidgets()
     }
 
-    DragDropDetailHost {
-        id: detailHost
-        y: calculateGridHeight()
-        anchors.left: parent.left
-        anchors.right: parent.right
-        expandedSection: root.expandedSection
-        expandedWidgetData: root.expandedWidgetData
+    onLayoutResultChanged: {
+        expandedRowIndex = layoutResult.expandedRowIndex
     }
 
     function moveToTop(item) {
@@ -92,131 +50,115 @@ Item {
     }
 
     Repeater {
-        id: widgetRepeater
-        model: SettingsData.controlCenterWidgets || []
+        model: root.layoutResult.rows
 
-        DragDropWidgetWrapper {
-            id: widgetWrapper
-
-            editMode: root.editMode
-            widgetData: modelData
-            widgetIndex: index
-            gridCellWidth: root.cellWidth
-            gridCellHeight: root.cellHeight
-            gridColumns: root.gridColumns
-            gridLayout: root
-            isSlider: {
-                const id = modelData.id || ""
-                return id === "volumeSlider" || id === "brightnessSlider" || id === "inputVolumeSlider"
+        Column {
+            width: root.width
+            spacing: 0
+            property int rowIndex: index
+            property var rowWidgets: modelData
+            property bool isSliderOnlyRow: {
+                const widgets = rowWidgets || []
+                if (widgets.length === 0) return false
+                return widgets.every(w => w.id === "volumeSlider" || w.id === "brightnessSlider" || w.id === "inputVolumeSlider")
             }
+            topPadding: isSliderOnlyRow ? (root.editMode ? 4 : -6) : 0
+            bottomPadding: isSliderOnlyRow ? (root.editMode ? 4 : -6) : 0
 
-            widgetComponent: {
-                const id = modelData.id || ""
-                if (id === "wifi" || id === "bluetooth" || id === "audioOutput" || id === "audioInput") {
-                    return compoundPillComponent
-                } else if (id === "volumeSlider") {
-                    return audioSliderComponent
-                } else if (id === "brightnessSlider") {
-                    return brightnessSliderComponent
-                } else if (id === "inputVolumeSlider") {
-                    return inputAudioSliderComponent
-                } else if (id === "battery") {
-                    const widgetWidth = modelData.width || 50
-                    return widgetWidth <= 25 ? smallBatteryComponent : batteryPillComponent
-                } else if (id === "diskUsage") {
-                    return diskUsagePillComponent
-                } else {
-                    const widgetWidth = modelData.width || 50
-                    return widgetWidth <= 25 ? smallToggleComponent : toggleButtonComponent
+            Flow {
+                width: parent.width
+                spacing: Theme.spacingS
+
+                Repeater {
+                    model: rowWidgets || []
+
+                    DragDropWidgetWrapper {
+                        widgetData: modelData
+                        property int globalWidgetIndex: {
+                            const widgets = SettingsData.controlCenterWidgets || []
+                            for (var i = 0; i < widgets.length; i++) {
+                                if (widgets[i].id === modelData.id) {
+                                    if (modelData.id === "diskUsage") {
+                                        if (widgets[i].instanceId === modelData.instanceId) {
+                                            return i
+                                        }
+                                    } else {
+                                        return i
+                                    }
+                                }
+                            }
+                            return -1
+                        }
+                        property int widgetWidth: modelData.width || 50
+                        width: {
+                            const baseWidth = root.width
+                            const spacing = Theme.spacingS
+                            if (widgetWidth <= 25) {
+                                return (baseWidth - spacing * 3) / 4
+                            } else if (widgetWidth <= 50) {
+                                return (baseWidth - spacing) / 2
+                            } else if (widgetWidth <= 75) {
+                                return (baseWidth - spacing * 2) * 0.75
+                            } else {
+                                return baseWidth
+                            }
+                        }
+                        height: isSliderOnlyRow ? 48 : 60
+
+                        editMode: root.editMode
+                        widgetIndex: globalWidgetIndex
+                        gridCellWidth: width
+                        gridCellHeight: height
+                        gridColumns: 4
+                        gridLayout: root
+                        isSlider: {
+                            const id = modelData.id || ""
+                            return id === "volumeSlider" || id === "brightnessSlider" || id === "inputVolumeSlider"
+                        }
+
+                        widgetComponent: {
+                            const id = modelData.id || ""
+                            if (id === "wifi" || id === "bluetooth" || id === "audioOutput" || id === "audioInput") {
+                                return compoundPillComponent
+                            } else if (id === "volumeSlider") {
+                                return audioSliderComponent
+                            } else if (id === "brightnessSlider") {
+                                return brightnessSliderComponent
+                            } else if (id === "inputVolumeSlider") {
+                                return inputAudioSliderComponent
+                            } else if (id === "battery") {
+                                return widgetWidth <= 25 ? smallBatteryComponent : batteryPillComponent
+                            } else if (id === "diskUsage") {
+                                return diskUsagePillComponent
+                            } else {
+                                return widgetWidth <= 25 ? smallToggleComponent : toggleButtonComponent
+                            }
+                        }
+
+                        onWidgetMoved: (fromIndex, toIndex) => root.moveWidget(fromIndex, toIndex)
+                        onRemoveWidget: index => root.removeWidget(index)
+                        onToggleWidgetSize: index => root.toggleWidgetSize(index)
+                    }
                 }
             }
 
-            x: calculateWidgetX(index)
-            y: calculateWidgetY(index)
+            DetailHost {
+                width: parent.width
+                height: active ? (250 + Theme.spacingS) : 0
+                property bool active: {
+                    if (root.expandedSection === "") return false
 
-            onWidgetMoved: (fromIndex, toIndex) => root.moveWidget(fromIndex, toIndex)
-            onRemoveWidget: index => root.removeWidget(index)
-            onToggleWidgetSize: index => root.toggleWidgetSize(index)
+                    if (root.expandedSection.startsWith("diskUsage_") && root.expandedWidgetData) {
+                        const expandedInstanceId = root.expandedWidgetData.instanceId
+                        return rowWidgets.some(w => w.id === "diskUsage" && w.instanceId === expandedInstanceId)
+                    }
 
-            Behavior on x {
-                enabled: !editMode
-                NumberAnimation {
-                    duration: Theme.mediumDuration
-                    easing.type: Easing.OutCubic
+                    return rowIndex === root.expandedRowIndex
                 }
+                visible: active
+                expandedSection: root.expandedSection
+                expandedWidgetData: root.expandedWidgetData
             }
-
-            Behavior on y {
-                enabled: !editMode
-                NumberAnimation {
-                    duration: Theme.mediumDuration
-                    easing.type: Easing.OutCubic
-                }
-            }
-        }
-    }
-
-    property var widgetPositions: calculateAllWidgetPositions()
-
-    function calculateAllWidgetPositions() {
-        const widgets = SettingsData.controlCenterWidgets || []
-        let positions = []
-        let currentX = 0
-        let currentY = 0
-
-        for (var i = 0; i < widgets.length; i++) {
-            const widget = widgets[i]
-            const widgetWidth = widget.width || 50
-            let cellsNeeded = 1
-
-            if (widgetWidth <= 25)
-                cellsNeeded = 1
-            else if (widgetWidth <= 50)
-                cellsNeeded = 2
-            else if (widgetWidth <= 75)
-                cellsNeeded = 3
-            else
-                cellsNeeded = 4
-
-            if (currentX + cellsNeeded > gridColumns) {
-                currentX = 0
-                currentY++
-            }
-
-            const horizontalSpacing = gridSpacing
-            positions[i] = {
-                "x": currentX * cellWidth + (currentX > 0 ? currentX * horizontalSpacing : 0),
-                "y": currentY * cellHeight + (currentY > 0 ? currentY * gridSpacing : 0),
-                "cellsUsed": cellsNeeded
-            }
-
-            currentX += cellsNeeded
-
-            if (currentX >= gridColumns) {
-                currentX = 0
-                currentY++
-            }
-        }
-
-        return positions
-    }
-
-    function calculateWidgetX(widgetIndex) {
-        if (widgetIndex < 0 || widgetIndex >= widgetPositions.length)
-            return 0
-        return widgetPositions[widgetIndex].x
-    }
-
-    function calculateWidgetY(widgetIndex) {
-        if (widgetIndex < 0 || widgetIndex >= widgetPositions.length)
-            return 0
-        return widgetPositions[widgetIndex].y
-    }
-
-    Connections {
-        target: SettingsData
-        function onControlCenterWidgetsChanged() {
-            widgetPositions = calculateAllWidgetPositions()
         }
     }
 
@@ -227,7 +169,7 @@ Item {
             property int widgetIndex: parent.widgetIndex || 0
             property var widgetDef: root.model?.getWidgetForId(widgetData.id || "")
             width: parent.width
-            height: cellHeight
+            height: 60
             iconName: {
                 switch (widgetData.id || "") {
                 case "wifi":
@@ -395,10 +337,9 @@ Item {
                     return false
                 }
             }
-            enabled: !root.editMode && (widgetDef?.enabled ?? true)
+            enabled: widgetDef?.enabled ?? true
             onToggled: {
-                if (root.editMode)
-                    return
+                if (root.editMode) return
                 switch (widgetData.id || "") {
                 case "wifi":
                 {
@@ -431,12 +372,11 @@ Item {
                 }
             }
             onExpandClicked: {
-                if (!root.editMode)
-                    root.expandClicked(widgetData, widgetIndex)
+                if (root.editMode) return
+                root.expandClicked(widgetData, widgetIndex)
             }
             onWheelEvent: function (wheelEvent) {
-                if (root.editMode)
-                    return
+                if (root.editMode) return
                 const id = widgetData.id || ""
                 if (id === "audioOutput") {
                     if (!AudioService.sink || !AudioService.sink.audio)
@@ -471,43 +411,67 @@ Item {
 
     Component {
         id: audioSliderComponent
-        AudioSliderRow {
+        Item {
+            property var widgetData: parent.widgetData || {}
+            property int widgetIndex: parent.widgetIndex || 0
             width: parent.width
-            height: 14
-            enabled: !root.editMode
-            property color sliderTrackColor: Theme.surfaceContainerHigh
+            height: 16
+
+            AudioSliderRow {
+                anchors.centerIn: parent
+                width: parent.width
+                height: 14
+                property color sliderTrackColor: Theme.surfaceContainerHigh
+            }
         }
     }
 
     Component {
         id: brightnessSliderComponent
-        BrightnessSliderRow {
+        Item {
+            property var widgetData: parent.widgetData || {}
+            property int widgetIndex: parent.widgetIndex || 0
             width: parent.width
-            height: 14
-            enabled: !root.editMode
-            property color sliderTrackColor: Theme.surfaceContainerHigh
+            height: 16
+
+            BrightnessSliderRow {
+                anchors.centerIn: parent
+                width: parent.width
+                height: 14
+                property color sliderTrackColor: Theme.surfaceContainerHigh
+            }
         }
     }
 
     Component {
         id: inputAudioSliderComponent
-        InputAudioSliderRow {
+        Item {
+            property var widgetData: parent.widgetData || {}
+            property int widgetIndex: parent.widgetIndex || 0
             width: parent.width
-            height: 14
-            enabled: !root.editMode
-            property color sliderTrackColor: Theme.surfaceContainerHigh
+            height: 16
+
+            InputAudioSliderRow {
+                anchors.centerIn: parent
+                width: parent.width
+                height: 14
+                property color sliderTrackColor: Theme.surfaceContainerHigh
+            }
         }
     }
 
     Component {
         id: batteryPillComponent
         BatteryPill {
+            property var widgetData: parent.widgetData || {}
+            property int widgetIndex: parent.widgetIndex || 0
             width: parent.width
-            height: cellHeight
-            enabled: !root.editMode
+            height: 60
+
             onExpandClicked: {
-                if (!root.editMode)
-                    root.expandClicked(parent.widgetData, parent.widgetIndex)
+                if (!root.editMode) {
+                    root.expandClicked(widgetData, widgetIndex)
+                }
             }
         }
     }
@@ -515,12 +479,15 @@ Item {
     Component {
         id: smallBatteryComponent
         SmallBatteryButton {
+            property var widgetData: parent.widgetData || {}
+            property int widgetIndex: parent.widgetIndex || 0
             width: parent.width
             height: 48
-            enabled: !root.editMode
+
             onClicked: {
-                if (!root.editMode)
-                    root.expandClicked(parent.widgetData, parent.widgetIndex)
+                if (!root.editMode) {
+                    root.expandClicked(widgetData, widgetIndex)
+                }
             }
         }
     }
@@ -530,9 +497,8 @@ Item {
         ToggleButton {
             property var widgetData: parent.widgetData || {}
             property int widgetIndex: parent.widgetIndex || 0
-            property var widgetDef: root.model?.getWidgetForId(widgetData.id || "")
             width: parent.width
-            height: cellHeight
+            height: 60
 
             iconName: {
                 switch (widgetData.id || "") {
@@ -545,7 +511,7 @@ Item {
                 case "idleInhibitor":
                     return SessionService.idleInhibited ? "motion_sensor_active" : "motion_sensor_idle"
                 default:
-                    return widgetDef?.icon || "help"
+                    return "help"
                 }
             }
 
@@ -560,7 +526,7 @@ Item {
                 case "idleInhibitor":
                     return SessionService.idleInhibited ? "Keeping Awake" : "Keep Awake"
                 default:
-                    return widgetDef?.text || "Unknown"
+                    return "Unknown"
                 }
             }
 
@@ -581,7 +547,7 @@ Item {
                 }
             }
 
-            enabled: !root.editMode && (widgetDef?.enabled ?? true)
+enabled: !root.editMode
 
             onClicked: {
                 if (root.editMode)
@@ -618,7 +584,6 @@ Item {
         SmallToggleButton {
             property var widgetData: parent.widgetData || {}
             property int widgetIndex: parent.widgetIndex || 0
-            property var widgetDef: root.model?.getWidgetForId(widgetData.id || "")
             width: parent.width
             height: 48
 
@@ -633,7 +598,7 @@ Item {
                 case "idleInhibitor":
                     return SessionService.idleInhibited ? "motion_sensor_active" : "motion_sensor_idle"
                 default:
-                    return widgetDef?.icon || "help"
+                    return "help"
                 }
             }
 
@@ -654,7 +619,7 @@ Item {
                 }
             }
 
-            enabled: !root.editMode && (widgetDef?.enabled ?? true)
+enabled: !root.editMode
 
             onClicked: {
                 if (root.editMode)
@@ -689,14 +654,18 @@ Item {
     Component {
         id: diskUsagePillComponent
         DiskUsagePill {
+            property var widgetData: parent.widgetData || {}
+            property int widgetIndex: parent.widgetIndex || 0
             width: parent.width
-            height: cellHeight
-            enabled: !root.editMode
-            mountPath: parent.widgetData?.mountPath || "/"
-            instanceId: parent.widgetData?.instanceId || ""
+            height: 60
+
+            mountPath: widgetData.mountPath || "/"
+            instanceId: widgetData.instanceId || ""
+
             onExpandClicked: {
-                if (!root.editMode)
-                    root.expandClicked(parent.widgetData, parent.widgetIndex)
+                if (!root.editMode) {
+                    root.expandClicked(widgetData, widgetIndex)
+                }
             }
         }
     }

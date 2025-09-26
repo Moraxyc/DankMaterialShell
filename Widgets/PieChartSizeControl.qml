@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Common
 
-Item {
+Row {
     id: root
 
     property int currentSize: 50
@@ -11,75 +11,41 @@ Item {
 
     signal sizeChanged(int newSize)
 
-    width: 28
-    height: 28
-
     readonly property var availableSizes: isSlider ? [50, 100] : [25, 50, 75, 100]
-    readonly property int currentSizeIndex: availableSizes.indexOf(currentSize)
 
-    Canvas {
-        id: pieCanvas
-        anchors.fill: parent
+    spacing: 2
 
-        onPaint: {
-            const ctx = getContext("2d")
-            const centerX = width / 2
-            const centerY = height / 2
-            const radius = Math.min(width, height) / 2 - 2
+    Repeater {
+        model: root.availableSizes
 
-            ctx.clearRect(0, 0, width, height)
+        Rectangle {
+            width: 16
+            height: 16
+            radius: 3
+            color: modelData === root.currentSize ? Theme.primary : Theme.surfaceContainer
+            border.color: modelData === root.currentSize ? Theme.primary : Theme.outline
+            border.width: 1
 
-            ctx.strokeStyle = Theme.primary
-            ctx.lineWidth = 1.5
-            ctx.beginPath()
-            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
-            ctx.stroke()
+            StyledText {
+                anchors.centerIn: parent
+                text: modelData.toString()
+                font.pixelSize: 8
+                font.weight: Font.Medium
+                color: modelData === root.currentSize ? Theme.primaryContainer : Theme.surfaceText
+            }
 
-            if (availableSizes.length > 0 && currentSizeIndex >= 0) {
-                const segmentAngle = (2 * Math.PI) / availableSizes.length
-                const startAngle = -Math.PI / 2
-                const endAngle = startAngle + segmentAngle * (currentSizeIndex + 1)
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    root.currentSize = modelData
+                    root.sizeChanged(modelData)
+                }
+            }
 
-                ctx.fillStyle = Theme.primary
-                ctx.beginPath()
-                ctx.moveTo(centerX, centerY)
-                ctx.arc(centerX, centerY, radius - 1, startAngle, endAngle)
-                ctx.closePath()
-                ctx.fill()
+            Behavior on color {
+                ColorAnimation { duration: Theme.shortDuration }
             }
         }
-    }
-
-    Rectangle {
-        anchors.centerIn: parent
-        width: 12
-        height: 12
-        radius: 6
-        color: Theme.surfaceContainer
-        border.color: Theme.outline
-        border.width: 1
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: {
-            const nextIndex = (currentSizeIndex + 1) % availableSizes.length
-            const newSize = availableSizes[nextIndex]
-            currentSize = newSize
-            pieCanvas.requestPaint()
-            sizeChanged(newSize)
-        }
-    }
-
-    onCurrentSizeChanged: {
-        pieCanvas.requestPaint()
-    }
-
-    onIsSliderChanged: {
-        if (isSlider && currentSize !== 50 && currentSize !== 100) {
-            currentSize = 50
-        }
-        pieCanvas.requestPaint()
     }
 }

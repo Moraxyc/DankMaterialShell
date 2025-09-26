@@ -69,8 +69,23 @@ Item {
     Component {
         id: diskUsageDetailComponent
         DiskUsageDetail {
-            currentMountPath: root.expandedWidgetData?.currentMountPath || "/"
+            currentMountPath: root.expandedWidgetData?.mountPath || "/"
             instanceId: root.expandedWidgetData?.instanceId || ""
+
+            onMountPathChanged: (newMountPath) => {
+                if (root.expandedWidgetData && root.expandedWidgetData.id === "diskUsage") {
+                    const widgets = SettingsData.controlCenterWidgets || []
+                    const newWidgets = widgets.map(w => {
+                        if (w.id === "diskUsage" && w.instanceId === root.expandedWidgetData.instanceId) {
+                            const updatedWidget = Object.assign({}, w)
+                            updatedWidget.mountPath = newMountPath
+                            return updatedWidget
+                        }
+                        return w
+                    })
+                    SettingsData.setControlCenterWidgets(newWidgets)
+                }
+            }
         }
     }
 }

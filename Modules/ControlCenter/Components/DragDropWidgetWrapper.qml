@@ -16,6 +16,8 @@ Item {
     property int gridColumns: 4
     property var gridLayout: null
 
+    z: dragArea.drag.active ? 10000 : 1
+
     signal widgetMoved(int fromIndex, int toIndex)
     signal removeWidget(int index)
     signal toggleWidgetSize(int index)
@@ -27,7 +29,7 @@ Item {
         else if (widgetWidth <= 75) return gridCellWidth * 3
         else return gridCellWidth * 4
     }
-    height: gridCellHeight
+    height: isSlider ? 16 : gridCellHeight
 
     Rectangle {
         id: dragIndicator
@@ -37,7 +39,7 @@ Item {
         border.width: dragArea.drag.active ? 2 : 0
         radius: Theme.cornerRadius
         opacity: dragArea.drag.active ? 0.8 : 1.0
-        z: dragArea.drag.active ? 1000 : 1
+        z: dragArea.drag.active ? 10000 : 1
 
         Behavior on border.width {
             NumberAnimation { duration: 150 }
@@ -56,13 +58,14 @@ Item {
         property int globalWidgetIndex: root.widgetIndex
         property int widgetWidth: root.widgetData?.width || 50
 
+
         MouseArea {
             id: editModeBlocker
             anchors.fill: parent
             enabled: root.editMode
             acceptedButtons: Qt.AllButtons
-            onPressed: mouse.accepted = true
-            onWheel: wheel.accepted = true
+            onPressed: function(mouse) { mouse.accepted = true }
+            onWheel: function(wheel) { wheel.accepted = true }
             z: 100
         }
     }
@@ -71,23 +74,23 @@ Item {
         id: dragArea
         anchors.fill: parent
         enabled: editMode
-        cursorShape: editMode ? Qt.OpenHandCursor : Qt.ArrowCursor
+        cursorShape: editMode ? Qt.OpenHandCursor : Qt.PointingHandCursor
         drag.target: editMode ? root : null
         drag.axis: Drag.XAndYAxis
         drag.smoothed: true
 
-        onPressed: {
+        onPressed: function(mouse) {
             if (editMode) {
                 cursorShape = Qt.ClosedHandCursor
-                root.z = 1000
-                root.parent.moveToTop(root)
+                if (root.gridLayout && root.gridLayout.moveToTop) {
+                    root.gridLayout.moveToTop(root)
+                }
             }
         }
 
-        onReleased: {
+        onReleased: function(mouse) {
             if (editMode) {
                 cursorShape = Qt.OpenHandCursor
-                root.z = 1
                 root.snapToGrid()
             }
         }
@@ -97,6 +100,19 @@ Item {
     Drag.hotSpot.x: width / 2
     Drag.hotSpot.y: height / 2
 
+    function swapIndices(i, j) {
+        if (i === j) return;
+        const arr = SettingsData.controlCenterWidgets;
+        if (!arr || i < 0 || j < 0 || i >= arr.length || j >= arr.length) return;
+
+        const copy = arr.slice();
+        const tmp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = tmp;
+
+        SettingsData.setControlCenterWidgets(copy);
+    }
+
     function snapToGrid() {
         if (!editMode || !gridLayout) return
 
@@ -104,80 +120,90 @@ Item {
         const cellWidth = gridLayout.width / gridColumns
         const cellHeight = gridCellHeight + Theme.spacingS
 
-        let targetCol = Math.max(0, Math.round(globalPos.x / cellWidth))
-        let targetRow = Math.max(0, Math.round(globalPos.y / cellHeight))
+        const centerX = globalPos.x + (root.width / 2)
+        const centerY = globalPos.y + (root.height / 2)
 
-        const widgetCells = Math.ceil(root.width / cellWidth)
+        let targetCol = Math.max(0, Math.floor(centerX / cellWidth))
+        let targetRow = Math.max(0, Math.floor(centerY / cellHeight))
 
-        if (targetCol + widgetCells > gridColumns) {
-            targetCol = Math.max(0, gridColumns - widgetCells)
-        }
+        targetCol = Math.min(targetCol, gridColumns - 1)
 
         const newIndex = findBestInsertionIndex(targetRow, targetCol)
 
         if (newIndex !== widgetIndex && newIndex >= 0 && newIndex < (SettingsData.controlCenterWidgets?.length || 0)) {
-            widgetMoved(widgetIndex, newIndex)
+            swapIndices(widgetIndex, newIndex)
         }
     }
 
     function findBestInsertionIndex(targetRow, targetCol) {
-        const widgets = SettingsData.controlCenterWidgets || []
-        if (!widgets.length) return 0
+        const widgets = SettingsData.controlCenterWidgets || [];
+        const n = widgets.length;
+        if (!n || widgetIndex < 0 || widgetIndex >= n) return -1;
 
-        const targetPosition = targetRow * gridColumns + targetCol
+        function spanFor(width) {
+            const w = width ?? 50;
+            if (w <= 25) return 1;
+            if (w <= 50) return 2;
+            if (w <= 75) return 3;
+            return 4;
+        }
 
-        // Find the widget position closest to our target
-        let bestIndex = 0
-        let bestDistance = Infinity
+        const cols = gridColumns || 4;
 
-        for (let i = 0; i <= widgets.length; i++) {
-            if (i === widgetIndex) continue
+        let row = 0, col = 0;
+        let draggedOrigKey = null;
 
-            let currentPos = calculatePositionForIndex(i)
-            let distance = Math.abs(currentPos - targetPosition)
+        const pos = [];
 
-            if (distance < bestDistance) {
-                bestDistance = distance
-                bestIndex = i > widgetIndex ? i - 1 : i
+        for (let i = 0; i < n; i++) {
+            const span = Math.min(spanFor(widgets[i].width), cols);
+
+            if (col + span > cols) {
+                row++;
+                col = 0;
+            }
+
+            const startCol = col;
+            const centerKey = row * cols + (startCol + (span - 1) / 2);
+
+            if (i === widgetIndex) {
+                draggedOrigKey = centerKey;
+            } else {
+                pos.push({ index: i, row, startCol, span, centerKey });
+            }
+
+            col += span;
+            if (col >= cols) {
+                row++;
+                col = 0;
             }
         }
 
-        return Math.max(0, Math.min(bestIndex, widgets.length - 1))
-    }
+        if (pos.length === 0) return -1;
 
-    function calculatePositionForIndex(index) {
-        const widgets = SettingsData.controlCenterWidgets || []
-        let currentX = 0
-        let currentY = 0
+        const centerColCoord = targetCol + 0.5;
+        const targetKey = targetRow * cols + centerColCoord;
 
-        for (let i = 0; i < index && i < widgets.length; i++) {
-            if (i === widgetIndex) continue
-
-            const widget = widgets[i]
-            const widgetWidth = widget.width || 50
-            let cellsNeeded = widgetWidth <= 25 ? 1 : widgetWidth <= 50 ? 2 : widgetWidth <= 75 ? 3 : 4
-
-            if (currentX + cellsNeeded > gridColumns) {
-                currentX = 0
-                currentY++
-            }
-
-            currentX += cellsNeeded
-            if (currentX >= gridColumns) {
-                currentX = 0
-                currentY++
+        for (let k = 0; k < pos.length; k++) {
+            const p = pos[k];
+            if (p.row === targetRow && centerColCoord >= p.startCol && centerColCoord < (p.startCol + p.span)) {
+                return p.index;
             }
         }
 
-        return currentY * gridColumns + currentX
-    }
+        let lo = 0, hi = pos.length - 1;
+        if (targetKey <= pos[0].centerKey) return pos[0].index;
+        if (targetKey >= pos[hi].centerKey) return pos[hi].index;
 
-    function getWidgetWidth(widgetWidth) {
-        const cellWidth = gridLayout ? gridLayout.width / gridColumns : gridCellWidth
-        if (widgetWidth <= 25) return cellWidth
-        else if (widgetWidth <= 50) return cellWidth * 2
-        else if (widgetWidth <= 75) return cellWidth * 3
-        else return cellWidth * 4
+        while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            const mk = pos[mid].centerKey;
+            if (targetKey < mk) hi = mid - 1;
+            else if (targetKey > mk) lo = mid + 1;
+            else return pos[mid].index;
+        }
+        const movingUp = (draggedOrigKey != null) ? (targetKey < draggedOrigKey) : false;
+        return (movingUp ? pos[lo].index : pos[hi].index);
     }
 
     Rectangle {
@@ -200,6 +226,7 @@ Item {
 
         MouseArea {
             anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
             onClicked: removeWidget(widgetIndex)
         }
     }
