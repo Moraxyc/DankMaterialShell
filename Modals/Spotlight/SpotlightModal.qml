@@ -82,24 +82,6 @@ DankModal {
         target: ModalManager
     }
 
-    IpcHandler {
-        function open(): string  {
-            spotlightModal.show()
-            return "SPOTLIGHT_OPEN_SUCCESS"
-        }
-
-        function close(): string  {
-            spotlightModal.hide()
-            return "SPOTLIGHT_CLOSE_SUCCESS"
-        }
-
-        function toggle(): string  {
-            spotlightModal.toggle()
-            return "SPOTLIGHT_TOGGLE_SUCCESS"
-        }
-
-        target: "spotlight"
-    }
 
     spotlightContent: Component {
         SpotlightContent {

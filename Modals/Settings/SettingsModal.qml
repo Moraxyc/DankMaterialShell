@@ -41,38 +41,6 @@ DankModal {
     }
     content: settingsContent
 
-    IpcHandler {
-        function open(): string {
-            settingsModal.show();
-            return "SETTINGS_OPEN_SUCCESS";
-        }
-
-        function close(): string {
-            settingsModal.hide();
-            return "SETTINGS_CLOSE_SUCCESS";
-        }
-
-        function toggle(): string {
-            settingsModal.toggle();
-            return "SETTINGS_TOGGLE_SUCCESS";
-        }
-
-        target: "settings"
-    }
-
-    IpcHandler {
-        function browse(type: string) {
-            if (type === "wallpaper") {
-                wallpaperBrowser.allowStacking = false;
-                wallpaperBrowser.open();
-            } else if (type === "profile") {
-                profileBrowser.allowStacking = false;
-                profileBrowser.open();
-            }
-        }
-
-        target: "file"
-    }
 
     FileBrowserModal {
         id: profileBrowser

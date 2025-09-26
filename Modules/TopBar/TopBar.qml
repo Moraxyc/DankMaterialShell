@@ -208,7 +208,7 @@ PanelWindow {
                                  "loader": controlCenterLoader,
                                  "prop": "shouldBeVisible"
                              }, {
-                                 "loader": clipboardHistoryModalPopup,
+                                 "loader": clipboardHistoryModalLoader.item,
                                  "prop": "visible"
                              }, {
                                  "loader": systemUpdateLoader,
@@ -823,7 +823,9 @@ PanelWindow {
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
-                                        clipboardHistoryModalPopup.toggle()
+                                        clipboardHistoryModalLoader.active = true
+                                        if (clipboardHistoryModalLoader.item)
+                                            clipboardHistoryModalLoader.item.toggle()
                                     }
                                 }
 

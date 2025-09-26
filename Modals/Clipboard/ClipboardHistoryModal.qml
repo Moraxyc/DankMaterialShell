@@ -187,24 +187,6 @@ DankModal {
         filteredClipboardModel: filteredClipboardModel
     }
 
-    IpcHandler {
-        function open(): string {
-            clipboardHistoryModal.show()
-            return "CLIPBOARD_OPEN_SUCCESS"
-        }
-
-        function close(): string {
-            clipboardHistoryModal.hide()
-            return "CLIPBOARD_CLOSE_SUCCESS"
-        }
-
-        function toggle(): string {
-            clipboardHistoryModal.toggle()
-            return "CLIPBOARD_TOGGLE_SUCCESS"
-        }
-
-        target: "clipboard"
-    }
 
     clipboardContent: Component {
         ClipboardContent {

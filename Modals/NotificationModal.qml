@@ -71,24 +71,6 @@ DankModal {
         onClose: () => notificationModal.hide()
     }
 
-    IpcHandler {
-        function open(): string {
-            notificationModal.show();
-            return "NOTIFICATION_MODAL_OPEN_SUCCESS";
-        }
-
-        function close(): string {
-            notificationModal.hide();
-            return "NOTIFICATION_MODAL_CLOSE_SUCCESS";
-        }
-
-        function toggle(): string {
-            notificationModal.toggle();
-            return "NOTIFICATION_MODAL_TOGGLE_SUCCESS";
-        }
-
-        target: "notifications"
-    }
 
     content: Component {
         Item {

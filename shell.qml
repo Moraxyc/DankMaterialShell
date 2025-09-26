@@ -52,7 +52,11 @@ ShellRoot {
         delegate: TopBar {
             modelData: item
             notepadVariants: notepadSlideoutVariants
-            onColorPickerRequested: colorPickerModal.show()
+            onColorPickerRequested: {
+                colorPickerModalLoader.active = true
+                if (colorPickerModalLoader.item)
+                    colorPickerModalLoader.item.show()
+            }
         }
     }
 
@@ -244,8 +248,14 @@ ShellRoot {
         }
     }
 
-    SettingsModal {
-        id: settingsModal
+    LazyLoader {
+        id: settingsModalLoader
+
+        active: false
+
+        SettingsModal {
+            id: settingsModal
+        }
     }
 
     LazyLoader {
@@ -258,19 +268,44 @@ ShellRoot {
         }
     }
 
-    SpotlightModal {
-        id: spotlightModal
+    LazyLoader {
+        id: spotlightModalLoader
+
+        active: false
+
+        SpotlightModal {
+            id: spotlightModal
+        }
     }
 
-    ClipboardHistoryModal {
-        id: clipboardHistoryModalPopup
+    LazyLoader {
+        id: clipboardHistoryModalLoader
+
+        active: false
+
+        ClipboardHistoryModal {
+            id: clipboardHistoryModalPopup
+        }
     }
 
-    NotificationModal {
-        id: notificationModal
+    LazyLoader {
+        id: notificationModalLoader
+
+        active: false
+
+        NotificationModal {
+            id: notificationModal
+        }
     }
-    ColorPickerModal {
-        id: colorPickerModal
+
+    LazyLoader {
+        id: colorPickerModalLoader
+
+        active: false
+
+        ColorPickerModal {
+            id: colorPickerModal
+        }
     }
 
     LazyLoader {
@@ -360,216 +395,18 @@ ShellRoot {
         }
     }
 
-    IpcHandler {
-        function open() {
-            powerMenuModalLoader.active = true
-            if (powerMenuModalLoader.item)
-                powerMenuModalLoader.item.open()
+    IPC {
+        id: ipcHandlers
 
-            return "POWERMENU_OPEN_SUCCESS"
-        }
-
-        function close() {
-            if (powerMenuModalLoader.item)
-                powerMenuModalLoader.item.close()
-
-            return "POWERMENU_CLOSE_SUCCESS"
-        }
-
-        function toggle() {
-            powerMenuModalLoader.active = true
-            if (powerMenuModalLoader.item)
-                powerMenuModalLoader.item.toggle()
-
-            return "POWERMENU_TOGGLE_SUCCESS"
-        }
-
-        target: "powermenu"
-    }
-
-    IpcHandler {
-        function open(): string {
-            processListModalLoader.active = true
-            if (processListModalLoader.item)
-                processListModalLoader.item.show()
-
-            return "PROCESSLIST_OPEN_SUCCESS"
-        }
-
-        function close(): string {
-            if (processListModalLoader.item)
-                processListModalLoader.item.hide()
-
-            return "PROCESSLIST_CLOSE_SUCCESS"
-        }
-
-        function toggle(): string {
-            processListModalLoader.active = true
-            if (processListModalLoader.item)
-                processListModalLoader.item.toggle()
-
-            return "PROCESSLIST_TOGGLE_SUCCESS"
-        }
-
-        target: "processlist"
-    }
-
-    IpcHandler {
-        function open(): string {
-            controlCenterLoader.active = true
-            if (controlCenterLoader.item) {
-                controlCenterLoader.item.open()
-                return "CONTROL_CENTER_OPEN_SUCCESS"
-            }
-            return "CONTROL_CENTER_OPEN_FAILED"
-        }
-
-        function close(): string {
-            if (controlCenterLoader.item) {
-                controlCenterLoader.item.close()
-                return "CONTROL_CENTER_CLOSE_SUCCESS"
-            }
-            return "CONTROL_CENTER_CLOSE_FAILED"
-        }
-
-        function toggle(): string {
-            controlCenterLoader.active = true
-            if (controlCenterLoader.item) {
-                controlCenterLoader.item.toggle()
-                return "CONTROL_CENTER_TOGGLE_SUCCESS"
-            }
-            return "CONTROL_CENTER_TOGGLE_FAILED"
-        }
-
-        target: "control-center"
-    }
-
-    IpcHandler {
-        function open(tab: string): string {
-            dankDashPopoutLoader.active = true
-            if (dankDashPopoutLoader.item) {
-                switch (tab.toLowerCase()) {
-                case "media":
-                    dankDashPopoutLoader.item.currentTabIndex = 1
-                    break
-                case "weather":
-                    dankDashPopoutLoader.item.currentTabIndex = SettingsData.weatherEnabled ? 2 : 0
-                    break
-                default:
-                    dankDashPopoutLoader.item.currentTabIndex = 0
-                    break
-                }
-                dankDashPopoutLoader.item.setTriggerPosition(Screen.width / 2, Theme.barHeight + Theme.spacingS, 100, "center", Screen)
-                dankDashPopoutLoader.item.dashVisible = true
-                return "DASH_OPEN_SUCCESS"
-            }
-            return "DASH_OPEN_FAILED"
-        }
-
-        function close(): string {
-            if (dankDashPopoutLoader.item) {
-                dankDashPopoutLoader.item.dashVisible = false
-                return "DASH_CLOSE_SUCCESS"
-            }
-            return "DASH_CLOSE_FAILED"
-        }
-
-        function toggle(tab: string): string {
-            dankDashPopoutLoader.active = true
-            if (dankDashPopoutLoader.item) {
-                if (dankDashPopoutLoader.item.dashVisible) {
-                    dankDashPopoutLoader.item.dashVisible = false
-                } else {
-                    switch (tab.toLowerCase()) {
-                    case "media":
-                        dankDashPopoutLoader.item.currentTabIndex = 1
-                        break
-                    case "weather":
-                        dankDashPopoutLoader.item.currentTabIndex = SettingsData.weatherEnabled ? 2 : 0
-                        break
-                    default:
-                        dankDashPopoutLoader.item.currentTabIndex = 0
-                        break
-                    }
-                    dankDashPopoutLoader.item.setTriggerPosition(Screen.width / 2, Theme.barHeight + Theme.spacingS, 100, "center", Screen)
-                    dankDashPopoutLoader.item.dashVisible = true
-                }
-                return "DASH_TOGGLE_SUCCESS"
-            }
-            return "DASH_TOGGLE_FAILED"
-        }
-
-        target: "dash"
-    }
-
-    IpcHandler {
-        function getFocusedScreenName() {
-            if (CompositorService.isHyprland && Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.monitor) {
-                return Hyprland.focusedWorkspace.monitor.name
-            }
-            if (CompositorService.isNiri && NiriService.currentOutput) {
-                return NiriService.currentOutput
-            }
-            return ""
-        }
-
-        function getActiveNotepadInstance() {
-            if (notepadSlideoutVariants.instances.length === 0) {
-                return null
-            }
-
-            if (notepadSlideoutVariants.instances.length === 1) {
-                return notepadSlideoutVariants.instances[0]
-            }
-
-            var focusedScreen = getFocusedScreenName()
-            if (focusedScreen && notepadSlideoutVariants.instances.length > 0) {
-                for (var i = 0; i < notepadSlideoutVariants.instances.length; i++) {
-                    var slideout = notepadSlideoutVariants.instances[i]
-                    if (slideout.modelData && slideout.modelData.name === focusedScreen) {
-                        return slideout
-                    }
-                }
-            }
-
-            for (var i = 0; i < notepadSlideoutVariants.instances.length; i++) {
-                var slideout = notepadSlideoutVariants.instances[i]
-                if (slideout.isVisible) {
-                    return slideout
-                }
-            }
-
-            return notepadSlideoutVariants.instances[0]
-        }
-
-        function open(): string {
-            var instance = getActiveNotepadInstance()
-            if (instance) {
-                instance.show()
-                return "NOTEPAD_OPEN_SUCCESS"
-            }
-            return "NOTEPAD_OPEN_FAILED"
-        }
-
-        function close(): string {
-            var instance = getActiveNotepadInstance()
-            if (instance) {
-                instance.hide()
-                return "NOTEPAD_CLOSE_SUCCESS"
-            }
-            return "NOTEPAD_CLOSE_FAILED"
-        }
-
-        function toggle(): string {
-            var instance = getActiveNotepadInstance()
-            if (instance) {
-                instance.toggle()
-                return "NOTEPAD_TOGGLE_SUCCESS"
-            }
-            return "NOTEPAD_TOGGLE_FAILED"
-        }
-
-        target: "notepad"
+        powermenu: powerMenuModalLoader
+        processlist: processListModalLoader
+        controlCenter: controlCenterLoader
+        dash: dankDashPopoutLoader
+        notepadVariants: notepadSlideoutVariants
+        spotlight: spotlightModalLoader
+        clipboard: clipboardHistoryModalLoader
+        notifications: notificationModalLoader
+        settings: settingsModalLoader
     }
 
     Variants {
