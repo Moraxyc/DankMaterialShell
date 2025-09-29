@@ -73,6 +73,7 @@ Item {
             implicitHeight: !isVertical ? px(effectiveBarThickness + SettingsData.dankBarSpacing + (SettingsData.dankBarGothCornersEnabled ? _wingR : 0)) : 0
             implicitWidth: isVertical ? px(effectiveBarThickness + SettingsData.dankBarSpacing + (SettingsData.dankBarGothCornersEnabled ? _wingR : 0)) : 0
             color: "transparent"
+
             Component.onCompleted: {
                 const fonts = Qt.fontFamilies()
                 if (fonts.indexOf("Material Symbols Rounded") === -1) {
@@ -215,6 +216,7 @@ Item {
             Item {
                 id: topBarCore
                 anchors.fill: parent
+                layer.enabled: true
 
                 property real backgroundTransparency: SettingsData.dankBarTransparency
                 property bool autoHide: SettingsData.dankBarAutoHide
