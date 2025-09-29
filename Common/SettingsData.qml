@@ -1093,11 +1093,11 @@ Singleton {
 
     function setDockPosition(position) {
         dockPosition = position
-        if (position === SettingsData.Position.Bottom && dankBarAtBottom && showDock) {
-            setDankBarAtBottom(false)
+        if (position === SettingsData.Position.Bottom && dankBarPosition === SettingsData.Position.Bottom && showDock) {
+            setDankBarPosition(SettingsData.Position.Top)
         }
-        if (position === SettingsData.Position.Top && !dankBarAtBottom && showDock) {
-            setDankBarAtBottom(true)
+        if (position === SettingsData.Position.Top && dankBarPosition === SettingsData.Position.Top && showDock) {
+            setDankBarPosition(SettingsData.Position.Bottom)
         }
         saveSettings()
         Qt.callLater(() => forceDockLayoutRefresh())

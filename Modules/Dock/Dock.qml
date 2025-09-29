@@ -33,9 +33,11 @@ Variants {
     property bool groupByApp: SettingsData.dockGroupByApp
 
     readonly property bool isDockAtTop: SettingsData.dockPosition === SettingsData.Position.Top
-    readonly property bool isDankBarAtTop: !SettingsData.dankBarAtBottom
+    readonly property bool isDankBarAtTop: SettingsData.dankBarPosition === SettingsData.Position.Top
+    readonly property bool isDankBarAtBottom: SettingsData.dankBarPosition === SettingsData.Position.Bottom
     readonly property bool isDankBarVisible: SettingsData.dankBarVisible
-    readonly property bool needsBarSpacing: isDankBarVisible && (isDockAtTop === isDankBarAtTop)
+    readonly property bool isDankBarHorizontal: isDankBarAtTop || isDankBarAtBottom
+    readonly property bool needsBarSpacing: isDankBarVisible && isDankBarHorizontal && (isDockAtTop === isDankBarAtTop)
     readonly property real widgetHeight: Math.max(20, 26 + SettingsData.dankBarInnerPadding * 0.6)
     readonly property real effectiveBarHeight: Math.max(widgetHeight + SettingsData.dankBarInnerPadding + 4, Theme.barHeight - 4 - (8 - SettingsData.dankBarInnerPadding))
     readonly property real barSpacing: needsBarSpacing ? (SettingsData.dankBarSpacing + effectiveBarHeight + SettingsData.dankBarBottomGap) : 0
