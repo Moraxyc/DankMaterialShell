@@ -59,8 +59,6 @@ ShellRoot {
         }
 
         onCurrentPositionChanged: {
-            console.log("DEBUG: DankBar position changed to:", currentPosition, "- recreating bar")
-            // Completely recreate the bar component
             const component = sourceComponent
             sourceComponent = null
             Qt.callLater(() => {

@@ -22,7 +22,6 @@ DankPopout {
 
     property string expandedSection: ""
     property bool powerOptionsExpanded: false
-    property string triggerSection: "right"
     property var triggerScreen: null
     property bool editMode: false
     property int expandedWidgetIndex: -1
@@ -66,7 +65,7 @@ DankPopout {
     popupWidth: 550
     popupHeight: Math.min((triggerScreen?.height ?? 1080) - 100, contentLoader.item && contentLoader.item.implicitHeight > 0 ? contentLoader.item.implicitHeight + 20 : 400)
     triggerX: (triggerScreen?.width ?? 1920) - 600 - Theme.spacingL
-    triggerY: Theme.barHeight - 4 + SettingsData.dankBarSpacing + Theme.popupDistance
+    triggerY: Theme.barHeight - 4 + SettingsData.dankBarSpacing
     triggerWidth: 80
     screen: triggerScreen
     shouldBeVisible: false

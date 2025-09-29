@@ -30,13 +30,12 @@ DankPopout {
             triggerX = x
             triggerWidth = width
         }
-        console.log("DankDash final values:", "triggerX:", triggerX, "triggerY:", triggerY, "triggerSection:", triggerSection)
     }
 
     popupWidth: 700
     popupHeight: contentLoader.item ? contentLoader.item.implicitHeight : 500
     triggerX: Screen.width - 620 - Theme.spacingL
-    triggerY: Math.max(26 + SettingsData.dankBarInnerPadding + 4, Theme.barHeight - 4 - (8 - SettingsData.dankBarInnerPadding)) + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+    triggerY: Math.max(26 + SettingsData.dankBarInnerPadding + 4, Theme.barHeight - 4 - (8 - SettingsData.dankBarInnerPadding)) + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2
     triggerWidth: 80
     shouldBeVisible: dashVisible
     visible: shouldBeVisible

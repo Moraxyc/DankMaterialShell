@@ -43,8 +43,13 @@ Item {
 
         Connections {
             target: barWindow
-            function on_BgColorChanged() { requestPaint() }
-            function on_DprChanged() { requestPaint() }
+            function on_BgColorChanged() { barShape.requestPaint() }
+            function on_DprChanged() { barShape.requestPaint() }
+        }
+
+        Connections {
+            target: Theme
+            function onIsLightModeChanged() { barShape.requestPaint() }
         }
 
         onPaint: {
@@ -137,6 +142,11 @@ Item {
             target: barWindow
             function on_BgColorChanged() { barTint.requestPaint() }
             function on_DprChanged() { barTint.requestPaint() }
+        }
+
+        Connections {
+            target: Theme
+            function onIsLightModeChanged() { barTint.requestPaint() }
         }
 
         onPaint: {

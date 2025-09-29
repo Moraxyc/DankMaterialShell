@@ -182,7 +182,7 @@ Item {
             anchors.left: !isVertical ? true : (SettingsData.dankBarPosition === SettingsData.Position.Left)
             anchors.right: !isVertical ? true : (SettingsData.dankBarPosition === SettingsData.Position.Right)
 
-            exclusiveZone: (!SettingsData.dankBarVisible || topBarCore.autoHide) ? -1 : (barWindow.effectiveBarThickness + SettingsData.dankBarSpacing + (isVertical ? 0 : SettingsData.dankBarBottomGap))
+            exclusiveZone: (!SettingsData.dankBarVisible || topBarCore.autoHide) ? -1 : (barWindow.effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap)
 
             Item {
                 id: inputMask

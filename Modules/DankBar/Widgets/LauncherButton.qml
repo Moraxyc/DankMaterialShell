@@ -29,13 +29,13 @@ Item {
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton
         onPressed: {
+            root.clicked();
             if (popupTarget && popupTarget.setTriggerPosition) {
                 const globalPos = mapToGlobal(0, 0);
                 const currentScreen = parentScreen || Screen;
                 const pos = SettingsData.getPopupTriggerPosition(globalPos, currentScreen, barThickness, width);
                 popupTarget.setTriggerPosition(pos.x, pos.y, pos.width, section, currentScreen);
             }
-            root.clicked();
         }
     }
 

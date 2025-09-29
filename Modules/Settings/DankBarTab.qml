@@ -889,7 +889,7 @@ Item {
                         spacing: Theme.spacingS
 
                         StyledText {
-                            text: "Height to Edge Gap (Exclusive Zone)"
+                            text: "Exclusive Zone Offset"
                             font.pixelSize: Theme.fontSizeSmall
                             color: Theme.surfaceText
                             font.weight: Font.Medium

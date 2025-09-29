@@ -318,19 +318,19 @@ Rectangle {
                         const edge = menuRoot.axis?.edge
                         let targetX
                         if (edge === "left") {
-                            targetX = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                            targetX = effectiveBarThickness + SettingsData.dankBarSpacing + Theme.popupDistance
                         } else {
-                            const popupX = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                            const popupX = effectiveBarThickness + SettingsData.dankBarSpacing + Theme.popupDistance
                             targetX = screen.width - popupX
                         }
                         anchorPos = Qt.point(targetX, relativeY + menuRoot.anchorItem.height / 2)
                     } else {
                         let targetY
                         if (menuRoot.isAtBottom) {
-                            const popupY = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                            const popupY = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap + Theme.popupDistance
                             targetY = screen.height - popupY
                         } else {
-                            targetY = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                            targetY = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap + Theme.popupDistance
                         }
                         anchorPos = Qt.point(relativeX + menuRoot.anchorItem.width / 2, targetY)
                     }

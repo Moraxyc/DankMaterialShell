@@ -1064,7 +1064,8 @@ Singleton {
     }
 
     function getPopupYPosition(barHeight) {
-        return barHeight + dankBarSpacing + dankBarBottomGap - 2 + Theme.popupDistance
+        const gothOffset = dankBarGothCornersEnabled ? Theme.cornerRadius : 0
+        return barHeight + dankBarSpacing + dankBarBottomGap - gothOffset + Theme.popupDistance
     }
 
     function getPopupTriggerPosition(globalPos, screen, barThickness, widgetWidth) {
@@ -1076,13 +1077,13 @@ Singleton {
         if (dankBarPosition === SettingsData.Position.Left || dankBarPosition === SettingsData.Position.Right) {
             return {
                 x: relativeY,
-                y: barThickness + dankBarSpacing + dankBarBottomGap - 2 + Theme.popupDistance,
+                y: barThickness + dankBarSpacing + Theme.popupDistance,
                 width: widgetWidth
             }
         }
         return {
             x: relativeX,
-            y: barThickness + dankBarSpacing + dankBarBottomGap - 2 + Theme.popupDistance,
+            y: barThickness + dankBarSpacing + dankBarBottomGap + Theme.popupDistance,
             width: widgetWidth
         }
     }
