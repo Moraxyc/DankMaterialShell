@@ -993,18 +993,10 @@ Item {
                             id: notepadButtonComponent
 
                             NotepadButton {
-                                property var notepadInstance: topBarCore.notepadInstance
-                                isActive: notepadInstance?.isVisible ?? false
                                 widgetThickness: barWindow.widgetThickness
                                 barThickness: barWindow.effectiveBarThickness
                                 section: topBarContent.getWidgetSection(parent) || "right"
-                                popupTarget: notepadInstance
                                 parentScreen: barWindow.screen
-                                onClicked: {
-                                    if (notepadInstance) {
-                                        notepadInstance.toggle()
-                                    }
-                                }
                             }
                         }
 

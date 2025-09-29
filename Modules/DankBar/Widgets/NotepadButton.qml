@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Hyprland
 import qs.Common
 import qs.Services
 import qs.Widgets
@@ -8,15 +9,39 @@ Rectangle {
 
     property bool isVertical: axis?.isVertical ?? false
     property var axis: null
-    property bool isActive: false
     property string section: "right"
-    property var popupTarget: null
     property var parentScreen: null
     property real widgetThickness: 30
     property real barThickness: 48
     readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
 
     signal clicked()
+
+    readonly property string focusedScreenName: (
+        CompositorService.isHyprland && typeof Hyprland !== "undefined" && Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.monitor ? (Hyprland.focusedWorkspace.monitor.name || "") :
+        CompositorService.isNiri && typeof NiriService !== "undefined" && NiriService.currentOutput ? NiriService.currentOutput : ""
+    )
+
+    function resolveNotepadInstance() {
+        if (typeof notepadSlideoutVariants === "undefined" || !notepadSlideoutVariants || !notepadSlideoutVariants.instances) {
+            return null
+        }
+
+        const targetScreen = focusedScreenName
+        if (targetScreen) {
+            for (var i = 0; i < notepadSlideoutVariants.instances.length; i++) {
+                var slideout = notepadSlideoutVariants.instances[i]
+                if (slideout.modelData && slideout.modelData.name === targetScreen) {
+                    return slideout
+                }
+            }
+        }
+
+        return notepadSlideoutVariants.instances.length > 0 ? notepadSlideoutVariants.instances[0] : null
+    }
+
+    readonly property var notepadInstance: resolveNotepadInstance()
+    readonly property bool isActive: notepadInstance?.isVisible ?? false
 
     width: isVertical ? widgetThickness : (notepadIcon.width + horizontalPadding * 2)
     height: isVertical ? (notepadIcon.height + horizontalPadding * 2) : widgetThickness
@@ -59,7 +84,11 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onPressed: {
-            root.clicked();
+            const inst = root.notepadInstance
+            if (inst) {
+                inst.toggle()
+            }
+            root.clicked()
         }
     }
 
