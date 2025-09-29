@@ -19,8 +19,6 @@ import qs.Widgets
 Item {
     id: root
 
-    property var notepadVariants: null
-
     signal colorPickerRequested()
 
     Variants {
@@ -66,17 +64,6 @@ Item {
             readonly property real _dpr: (barWindow.screen && barWindow.screen.devicePixelRatio) ? barWindow.screen.devicePixelRatio : 1
             function px(v) { return Math.round(v * _dpr) / _dpr }
 
-            function getNotepadInstanceForScreen() {
-                if (!root.notepadVariants || !root.notepadVariants.instances) return null
-
-                for (var i = 0; i < root.notepadVariants.instances.length; i++) {
-                    var slideout = root.notepadVariants.instances[i]
-                    if (slideout.modelData && slideout.modelData.name === barWindow.screen?.name) {
-                        return slideout
-                    }
-                }
-                return null
-            }
             property string screenName: modelData.name
             readonly property int notificationCount: NotificationService.notifications.length
             readonly property real effectiveBarThickness: Math.max(barWindow.widgetThickness + SettingsData.dankBarInnerPadding + 4, Theme.barHeight - 4 - (8 - SettingsData.dankBarInnerPadding))
@@ -247,9 +234,6 @@ Item {
             return SettingsData.dankBarVisible && (!autoHide || topBarMouseArea.containsMouse || hasActivePopout || revealSticky)
         }
 
-        property var notepadInstance: null
-        property bool notepadInstanceVisible: notepadInstance?.isVisible ?? false
-        
         readonly property bool hasActivePopout: {
             const loaders = [{
                                  "loader": appDrawerLoader,
@@ -279,16 +263,12 @@ Item {
                                  "loader": systemUpdateLoader,
                                  "prop": "shouldBeVisible"
                              }]
-            return notepadInstanceVisible || loaders.some(item => {
+            return loaders.some(item => {
                 if (item.loader) {
                     return item.loader?.item?.[item.prop]
                 }
                 return false
             })
-        }
-
-        Component.onCompleted: {
-            notepadInstance = barWindow.getNotepadInstanceForScreen()
         }
 
         Connections {
@@ -993,6 +973,7 @@ Item {
                             id: notepadButtonComponent
 
                             NotepadButton {
+                                isVertical: barWindow.isVertical
                                 widgetThickness: barWindow.widgetThickness
                                 barThickness: barWindow.effectiveBarThickness
                                 section: topBarContent.getWidgetSection(parent) || "right"
