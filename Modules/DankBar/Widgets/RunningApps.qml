@@ -10,13 +10,14 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property string section: "left"
     property var parentScreen
     property var hoveredItem: null
     property var topBar: null
-    property real widgetHeight: 30
+    property real widgetThickness: 30
     readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 2 : Theme.spacingS
-    // The visual root for this window
     property Item windowRoot: (Window.window ? Window.window.contentItem : null)
     readonly property var sortedToplevels: {
         if (SettingsData.runningAppsCurrentWorkspace) {
@@ -25,7 +26,7 @@ Rectangle {
         return CompositorService.sortedToplevels;
     }
     readonly property int windowCount: sortedToplevels.length
-    readonly property int calculatedWidth: {
+    readonly property int calculatedSize: {
         if (windowCount === 0) {
             return 0;
         }
@@ -37,8 +38,8 @@ Rectangle {
         }
     }
 
-    width: calculatedWidth
-    height: widgetHeight
+    width: isVertical ? widgetThickness : calculatedSize
+    height: isVertical ? calculatedSize : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     visible: windowCount > 0
     clip: false
@@ -143,18 +144,22 @@ Rectangle {
         }
     }
 
-    Row {
-        id: windowRow
-
+    Loader {
+        id: layoutLoader
         anchors.centerIn: parent
-        spacing: Theme.spacingXS
+        sourceComponent: root.isVertical ? columnLayout : rowLayout
+    }
 
-        Repeater {
-            id: windowRepeater
+    Component {
+        id: rowLayout
+        Row {
+            spacing: Theme.spacingXS
 
-            model: sortedToplevels
+            Repeater {
+                id: windowRepeater
+                model: sortedToplevels
 
-            delegate: Item {
+                delegate: Item {
                 id: delegateItem
 
                 property bool isFocused: modelData.activated
@@ -288,10 +293,10 @@ Rectangle {
                             }
                         } else if (mouse.button === Qt.RightButton) {
                             if (tooltipLoader.item) {
-                                tooltipLoader.item.hideTooltip();
+                                tooltipLoader.item.hide();
                             }
                             tooltipLoader.active = false;
-                            
+
                             windowContextMenuLoader.active = true;
                             if (windowContextMenuLoader.item) {
                                 windowContextMenuLoader.item.currentWindow = toplevelObject;
@@ -299,29 +304,34 @@ Rectangle {
                                 const screenX = root.parentScreen ? root.parentScreen.x : 0;
                                 const screenY = root.parentScreen ? root.parentScreen.y : 0;
                                 const relativeX = globalPos.x - screenX;
-                                const yPos = Theme.barHeight + SettingsData.dankBarSpacing - 7;
+                                const yPos = root.isVertical ? delegateItem.height / 2 : (Theme.barHeight + SettingsData.dankBarSpacing - 7);
                                 windowContextMenuLoader.item.showAt(relativeX, yPos);
                             }
                         }
                     }
                     onEntered: {
                         root.hoveredItem = delegateItem;
-                        const globalPos = delegateItem.mapToGlobal(
-                                    delegateItem.width / 2, delegateItem.height);
                         tooltipLoader.active = true;
                         if (tooltipLoader.item) {
-                            const tooltipY = Theme.barHeight
-                                    + SettingsData.dankBarSpacing + Theme.spacingXS;
-                            tooltipLoader.item.showTooltip(
-                                        delegateItem.tooltipText, globalPos.x,
-                                        tooltipY, root.parentScreen);
+                            if (root.isVertical) {
+                                const globalPos = delegateItem.mapToGlobal(delegateItem.width / 2, delegateItem.height / 2);
+                                const screenX = root.parentScreen ? root.parentScreen.x : 0;
+                                const screenY = root.parentScreen ? root.parentScreen.y : 0;
+                                const relativeY = globalPos.y - screenY;
+                                const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - 200);
+                                tooltipLoader.item.show(delegateItem.tooltipText, screenX + tooltipX, relativeY, root.parentScreen, true);
+                            } else {
+                                const globalPos = delegateItem.mapToGlobal(delegateItem.width / 2, delegateItem.height);
+                                const tooltipY = Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS;
+                                tooltipLoader.item.show(delegateItem.tooltipText, globalPos.x, tooltipY, root.parentScreen, false);
+                            }
                         }
                     }
                     onExited: {
                         if (root.hoveredItem === delegateItem) {
                             root.hoveredItem = null;
                             if (tooltipLoader.item) {
-                                tooltipLoader.item.hideTooltip();
+                                tooltipLoader.item.hide();
                             }
 
                             tooltipLoader.active = false;
@@ -330,6 +340,197 @@ Rectangle {
                 }
             }
         }
+        }
+    }
+
+    Component {
+        id: columnLayout
+        Column {
+            spacing: Theme.spacingXS
+
+            Repeater {
+                id: windowRepeater
+                model: sortedToplevels
+
+                delegate: Item {
+                id: delegateItem
+
+                property bool isFocused: modelData.activated
+                property string appId: modelData.appId || ""
+                property string windowTitle: modelData.title || "(Unnamed)"
+                property var toplevelObject: modelData
+                property string tooltipText: {
+                    let appName = "Unknown";
+                    if (appId) {
+                        const desktopEntry = DesktopEntries.heuristicLookup(appId);
+                        appName = desktopEntry
+                                && desktopEntry.name ? desktopEntry.name : appId;
+                    }
+                    return appName + (windowTitle ? " • " + windowTitle : "")
+                }
+
+                width: SettingsData.runningAppsCompactMode ? 24 : (24 + Theme.spacingXS + 120)
+                height: 24
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Theme.cornerRadius
+                    color: {
+                        if (isFocused) {
+                            return mouseArea.containsMouse ? Qt.rgba(
+                                                                 Theme.primary.r,
+                                                                 Theme.primary.g,
+                                                                 Theme.primary.b,
+                                                                 0.3) : Qt.rgba(
+                                                                 Theme.primary.r,
+                                                                 Theme.primary.g,
+                                                                 Theme.primary.b,
+                                                                 0.2);
+                        } else {
+                            return mouseArea.containsMouse ? Qt.rgba(
+                                                                 Theme.primaryHover.r,
+                                                                 Theme.primaryHover.g,
+                                                                 Theme.primaryHover.b,
+                                                                 0.1) : "transparent";
+                        }
+                    }
+
+                }
+
+                IconImage {
+                    id: iconImg
+                    anchors.left: parent.left
+                    anchors.leftMargin: SettingsData.runningAppsCompactMode ? (parent.width - 18) / 2 : Theme.spacingXS
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 18
+                    height: 18
+                    source: {
+                        const moddedId = Paths.moddedAppId(appId)
+                        if (moddedId.toLowerCase().includes("steam_app")) {
+                            return ""
+                        }
+                        return Quickshell.iconPath(DesktopEntries.heuristicLookup(moddedId)?.icon, true)
+                    }
+                    smooth: true
+                    mipmap: true
+                    asynchronous: true
+                    visible: status === Image.Ready
+                }
+
+                DankIcon {
+                    anchors.left: parent.left
+                    anchors.leftMargin: SettingsData.runningAppsCompactMode ? (parent.width - 18) / 2 : Theme.spacingXS
+                    anchors.verticalCenter: parent.verticalCenter
+                    size: 18
+                    name: "sports_esports"
+                    color: Theme.surfaceText
+                    visible: {
+                        const moddedId = Paths.moddedAppId(appId)
+                        return moddedId.toLowerCase().includes("steam_app")
+                    }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    visible: {
+                        const moddedId = Paths.moddedAppId(appId)
+                        const isSteamApp = moddedId.toLowerCase().includes("steam_app")
+                        return !iconImg.visible && !isSteamApp
+                    }
+                    text: {
+                        if (!appId) {
+                            return "?";
+                        }
+
+                        const desktopEntry = DesktopEntries.heuristicLookup(appId);
+                        if (desktopEntry && desktopEntry.name) {
+                            return desktopEntry.name.charAt(0).toUpperCase();
+                        }
+
+                        return appId.charAt(0).toUpperCase();
+                    }
+                    font.pixelSize: 10
+                    color: Theme.surfaceText
+                    font.weight: Font.Medium
+                }
+
+                StyledText {
+                    anchors.left: iconImg.right
+                    anchors.leftMargin: Theme.spacingXS
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.spacingS
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !SettingsData.runningAppsCompactMode
+                    text: windowTitle
+                    font.pixelSize: Theme.fontSizeMedium - 1
+                    color: Theme.surfaceText
+                    font.weight: Font.Medium
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                MouseArea {
+                    id: mouseArea
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    onClicked: (mouse) => {
+                        if (mouse.button === Qt.LeftButton) {
+                            if (toplevelObject) {
+                                toplevelObject.activate();
+                            }
+                        } else if (mouse.button === Qt.RightButton) {
+                            if (tooltipLoader.item) {
+                                tooltipLoader.item.hide();
+                            }
+                            tooltipLoader.active = false;
+
+                            windowContextMenuLoader.active = true;
+                            if (windowContextMenuLoader.item) {
+                                windowContextMenuLoader.item.currentWindow = toplevelObject;
+                                const globalPos = delegateItem.mapToGlobal(delegateItem.width / 2, 0);
+                                const screenX = root.parentScreen ? root.parentScreen.x : 0;
+                                const screenY = root.parentScreen ? root.parentScreen.y : 0;
+                                const relativeX = globalPos.x - screenX;
+                                const yPos = root.isVertical ? delegateItem.height / 2 : (Theme.barHeight + SettingsData.dankBarSpacing - 7);
+                                windowContextMenuLoader.item.showAt(relativeX, yPos);
+                            }
+                        }
+                    }
+                    onEntered: {
+                        root.hoveredItem = delegateItem;
+                        tooltipLoader.active = true;
+                        if (tooltipLoader.item) {
+                            if (root.isVertical) {
+                                const globalPos = delegateItem.mapToGlobal(delegateItem.width / 2, delegateItem.height / 2);
+                                const screenX = root.parentScreen ? root.parentScreen.x : 0;
+                                const screenY = root.parentScreen ? root.parentScreen.y : 0;
+                                const relativeY = globalPos.y - screenY;
+                                const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - 200);
+                                tooltipLoader.item.show(delegateItem.tooltipText, screenX + tooltipX, relativeY, root.parentScreen, true);
+                            } else {
+                                const globalPos = delegateItem.mapToGlobal(delegateItem.width / 2, delegateItem.height);
+                                const tooltipY = Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS;
+                                tooltipLoader.item.show(delegateItem.tooltipText, globalPos.x, tooltipY, root.parentScreen, false);
+                            }
+                        }
+                    }
+                    onExited: {
+                        if (root.hoveredItem === delegateItem) {
+                            root.hoveredItem = null;
+                            if (tooltipLoader.item) {
+                                tooltipLoader.item.hide();
+                            }
+
+                            tooltipLoader.active = false;
+                        }
+                    }
+                }
+            }
+        }
+        }
     }
 
     Loader {
@@ -337,7 +538,7 @@ Rectangle {
 
         active: false
 
-        sourceComponent: RunningAppsTooltip {}
+        sourceComponent: DankTooltip {}
     }
     
     Loader {

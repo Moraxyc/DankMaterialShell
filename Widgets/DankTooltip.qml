@@ -6,26 +6,32 @@ import qs.Common
 PanelWindow {
     id: root
 
-    property string tooltipText: ""
+    property string text: ""
     property real targetX: 0
     property real targetY: 0
     property var targetScreen: null
+    property bool alignLeft: false
 
-    function showTooltip(text, x, y, screen) {
-        tooltipText = text;
-        targetScreen = screen;
-        const screenX = screen ? screen.x : 0;
-        targetX = x - screenX;
-        targetY = y;
-        visible = true;
+    function show(text, x, y, screen, leftAlign) {
+        if (!screen) {
+            return
+        }
+        root.text = text
+        targetScreen = screen
+        alignLeft = leftAlign ?? false
+        const screenX = screen.x || 0
+        targetX = x - screenX
+        targetY = y
+        visible = true
     }
 
-    function hideTooltip() {
-        visible = false;
+    function hide() {
+        visible = false
+        targetScreen = null
     }
 
-    screen: targetScreen
-    implicitWidth: Math.min(300, Math.max(120, textContent.implicitWidth + Theme.spacingM * 2))
+    screen: targetScreen || Quickshell.screens[0]
+    implicitWidth: Math.min(500, Math.max(120, textContent.implicitWidth + Theme.spacingM * 2))
     implicitHeight: textContent.implicitHeight + Theme.spacingS * 2
     color: "transparent"
     visible: false
@@ -38,8 +44,8 @@ PanelWindow {
     }
 
     margins {
-        left: Math.round(targetX - implicitWidth / 2)
-        top: Math.round(targetY)
+        left: alignLeft ? Math.round(targetX) : Math.round(targetX - implicitWidth / 2)
+        top: Math.round(targetY - implicitHeight / 2)
     }
 
     Rectangle {
@@ -53,15 +59,11 @@ PanelWindow {
             id: textContent
 
             anchors.centerIn: parent
-            text: root.tooltipText
+            text: root.text
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.surfaceText
             wrapMode: Text.NoWrap
             maximumLineCount: 1
-            elide: Text.ElideRight
-            width: parent.width - Theme.spacingM * 2
         }
-
     }
-
 }

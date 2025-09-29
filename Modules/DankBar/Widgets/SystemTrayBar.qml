@@ -10,15 +10,17 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property var parentWindow: null
     property var parentScreen: null
-    property real widgetHeight: 30
+    property real widgetThickness: 30
     property bool isAtBottom: false
     readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 2 : Theme.spacingS
-    readonly property int calculatedWidth: SystemTray.items.values.length > 0 ? SystemTray.items.values.length * 24 + horizontalPadding * 2 : 0
+    readonly property int calculatedSize: SystemTray.items.values.length > 0 ? SystemTray.items.values.length * 24 + horizontalPadding * 2 : 0
 
-    width: calculatedWidth
-    height: widgetHeight
+    width: isVertical ? widgetThickness : calculatedSize
+    height: isVertical ? calculatedSize : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SystemTray.items.values.length === 0) {
@@ -34,16 +36,21 @@ Rectangle {
     }
     visible: SystemTray.items.values.length > 0
 
-    Row {
-        id: systemTrayRow
-
+    Loader {
+        id: layoutLoader
         anchors.centerIn: parent
-        spacing: 0
+        sourceComponent: root.isVertical ? columnComp : rowComp
+    }
 
-        Repeater {
-            model: SystemTray.items.values
+    Component {
+        id: rowComp
+        Row {
+            spacing: 0
 
-            delegate: Item {
+            Repeater {
+                model: SystemTray.items.values
+
+                delegate: Item {
                 property var trayItem: modelData
                 property string iconSource: {
                     let icon = trayItem && trayItem.icon;
@@ -108,7 +115,7 @@ Rectangle {
                             return ;
                         }
                         if (trayItem.hasMenu) {
-                            root.showForTrayItem(trayItem, parent, parentScreen, root.isAtBottom);
+                            root.showForTrayItem(trayItem, parent, parentScreen, root.isAtBottom, root.isVertical, root.axis);
                         }
                     }
                 }
@@ -116,7 +123,89 @@ Rectangle {
             }
 
         }
+        }
+    }
 
+    Component {
+        id: columnComp
+        Column {
+            spacing: 0
+
+            Repeater {
+                model: SystemTray.items.values
+
+                delegate: Item {
+                property var trayItem: modelData
+                property string iconSource: {
+                    let icon = trayItem && trayItem.icon;
+                    if (typeof icon === 'string' || icon instanceof String) {
+                        if (icon === "") {
+                            return "";
+                        }
+                        if (icon.includes("?path=")) {
+                            const split = icon.split("?path=");
+                            if (split.length !== 2) {
+                                return icon;
+                            }
+
+                            const name = split[0];
+                            const path = split[1];
+                            const fileName = name.substring(name.lastIndexOf("/") + 1);
+                            return `file://${path}/${fileName}`;
+                        }
+                        if (icon.startsWith("/") && !icon.startsWith("file://")) {
+                            return `file://${icon}`;
+                        }
+                        return icon;
+                    }
+                    return "";
+                }
+
+                width: 24
+                height: 24
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Theme.cornerRadius
+                    color: trayItemArea.containsMouse ? Theme.primaryHover : "transparent"
+                }
+
+                IconImage {
+                    anchors.centerIn: parent
+                    width: 16
+                    height: 16
+                    source: parent.iconSource
+                    asynchronous: true
+                    smooth: true
+                    mipmap: true
+                }
+
+                MouseArea {
+                    id: trayItemArea
+
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: (mouse) => {
+                        if (!trayItem) {
+                            return;
+                        }
+
+                        if (mouse.button === Qt.LeftButton && !trayItem.onlyMenu) {
+                            trayItem.activate();
+                            return ;
+                        }
+                        if (trayItem.hasMenu) {
+                            root.showForTrayItem(trayItem, parent, parentScreen, root.isAtBottom, root.isVertical, root.axis);
+                        }
+                    }
+                }
+
+            }
+
+        }
+        }
     }
 
     Component {
@@ -129,6 +218,8 @@ Rectangle {
             property var anchorItem: null
             property var parentScreen: null
             property bool isAtBottom: false
+            property bool isVertical: false
+            property var axis: null
             property bool showMenu: false
             property var menuHandle: null
 
@@ -137,11 +228,13 @@ Rectangle {
                 return entryStack.count ? entryStack.get(entryStack.count - 1).handle : null
             }
 
-            function showForTrayItem(item, anchor, screen, atBottom) {
+            function showForTrayItem(item, anchor, screen, atBottom, vertical, axisObj) {
                 trayItem = item
                 anchorItem = anchor
                 parentScreen = screen
                 isAtBottom = atBottom
+                isVertical = vertical
+                axis = axisObj
                 menuHandle = item?.menu
 
                 if (parentScreen) {
@@ -218,18 +311,29 @@ Rectangle {
                     const relativeX = globalPos.x - screenX
                     const relativeY = globalPos.y - screenY
 
-                    const widgetHeight = Math.max(20, 26 + SettingsData.dankBarInnerPadding * 0.6)
-                    const effectiveBarHeight = Math.max(widgetHeight + SettingsData.dankBarInnerPadding + 4, Theme.barHeight - 4 - (8 - SettingsData.dankBarInnerPadding))
+                    const widgetThickness = Math.max(20, 26 + SettingsData.dankBarInnerPadding * 0.6)
+                    const effectiveBarThickness = Math.max(widgetThickness + SettingsData.dankBarInnerPadding + 4, Theme.barHeight - 4 - (8 - SettingsData.dankBarInnerPadding))
 
-                    let targetY
-                    if (menuRoot.isAtBottom) {
-                        const popupY = effectiveBarHeight + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
-                        targetY = screen.height - popupY
+                    if (menuRoot.isVertical) {
+                        const edge = menuRoot.axis?.edge
+                        let targetX
+                        if (edge === "left") {
+                            targetX = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                        } else {
+                            const popupX = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                            targetX = screen.width - popupX
+                        }
+                        anchorPos = Qt.point(targetX, relativeY + menuRoot.anchorItem.height / 2)
                     } else {
-                        targetY = effectiveBarHeight + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                        let targetY
+                        if (menuRoot.isAtBottom) {
+                            const popupY = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                            targetY = screen.height - popupY
+                        } else {
+                            targetY = effectiveBarThickness + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2 + Theme.popupDistance
+                        }
+                        anchorPos = Qt.point(relativeX + menuRoot.anchorItem.width / 2, targetY)
                     }
-
-                    anchorPos = Qt.point(relativeX + menuRoot.anchorItem.width / 2, targetY)
                 }
 
                 Rectangle {
@@ -239,19 +343,37 @@ Rectangle {
                     height: Math.max(40, menuColumn.implicitHeight + Theme.spacingS * 2)
 
                     x: {
-                        const left = 10
-                        const right = menuWindow.width - width - 10
-                        const want = menuWindow.anchorPos.x - width / 2
-                        return Math.max(left, Math.min(right, want))
+                        if (menuRoot.isVertical) {
+                            const edge = menuRoot.axis?.edge
+                            if (edge === "left") {
+                                const targetX = menuWindow.anchorPos.x
+                                return Math.min(menuWindow.screen.width - width - 10, targetX)
+                            } else {
+                                const targetX = menuWindow.anchorPos.x - width
+                                return Math.max(10, targetX)
+                            }
+                        } else {
+                            const left = 10
+                            const right = menuWindow.width - width - 10
+                            const want = menuWindow.anchorPos.x - width / 2
+                            return Math.max(left, Math.min(right, want))
+                        }
                     }
 
                     y: {
-                        if (menuRoot.isAtBottom) {
-                            const targetY = menuWindow.anchorPos.y - height
-                            return Math.max(10, targetY)
+                        if (menuRoot.isVertical) {
+                            const top = 10
+                            const bottom = menuWindow.height - height - 10
+                            const want = menuWindow.anchorPos.y - height / 2
+                            return Math.max(top, Math.min(bottom, want))
                         } else {
-                            const targetY = menuWindow.anchorPos.y
-                            return Math.min(menuWindow.screen.height - height - 10, targetY)
+                            if (menuRoot.isAtBottom) {
+                                const targetY = menuWindow.anchorPos.y - height
+                                return Math.max(10, targetY)
+                            } else {
+                                const targetY = menuWindow.anchorPos.y
+                                return Math.min(menuWindow.screen.height - height - 10, targetY)
+                            }
                         }
                     }
 
@@ -376,15 +498,13 @@ Rectangle {
                                         if (!menuEntry || menuEntry.isSeparator) return;
 
                                         if (menuEntry.hasChildren) {
-                                            console.log("Opening submenu for:", menuEntry.text);
                                             menuRoot.showSubMenu(menuEntry);
                                         } else {
                                             if (typeof menuEntry.activate === "function") {
-                                                menuEntry.activate();          // preferred
+                                                menuEntry.activate();
                                             } else if (typeof menuEntry.triggered === "function") {
                                                 menuEntry.triggered();
                                             }
-                                            // optional: small delay to let provider flip state before closing
                                             Qt.createQmlObject('import QtQuick; Timer { interval: 80; running: true; repeat: false; onTriggered: menuRoot.close() }', menuRoot);
                                         }
                                     }
@@ -497,13 +617,13 @@ Rectangle {
 
     property var currentTrayMenu: null
 
-    function showForTrayItem(item, anchor, screen, atBottom) {
+    function showForTrayItem(item, anchor, screen, atBottom, vertical, axisObj) {
         if (currentTrayMenu) {
             currentTrayMenu.destroy()
         }
         currentTrayMenu = trayMenuComponent.createObject(null)
         if (currentTrayMenu) {
-            currentTrayMenu.showForTrayItem(item, anchor, screen, atBottom)
+            currentTrayMenu.showForTrayItem(item, anchor, screen, atBottom, vertical ?? false, axisObj)
         }
     }
 

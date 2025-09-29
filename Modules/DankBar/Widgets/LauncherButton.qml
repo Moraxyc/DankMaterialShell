@@ -7,17 +7,19 @@ Item {
     id: root
 
     property bool isActive: false
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property string section: "left"
     property var popupTarget: null
     property var parentScreen: null
-    property real widgetHeight: 30
-    property real barHeight: 48
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    property real widgetThickness: 30
+    property real barThickness: 48
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
 
     signal clicked()
 
-    width: Theme.iconSize + horizontalPadding * 2
-    height: widgetHeight
+    width: widgetThickness
+    height: widgetThickness
 
     MouseArea {
         id: launcherArea
@@ -30,9 +32,8 @@ Item {
             if (popupTarget && popupTarget.setTriggerPosition) {
                 const globalPos = mapToGlobal(0, 0);
                 const currentScreen = parentScreen || Screen;
-                const screenX = currentScreen.x || 0;
-                const relativeX = globalPos.x - screenX;
-                popupTarget.setTriggerPosition(relativeX, SettingsData.getPopupYPosition(barHeight), width, section, currentScreen);
+                const pos = SettingsData.getPopupTriggerPosition(globalPos, currentScreen, barThickness, width);
+                popupTarget.setTriggerPosition(pos.x, pos.y, pos.width, section, currentScreen);
             }
             root.clicked();
         }
@@ -55,8 +56,8 @@ Item {
         SystemLogo {
             visible: SettingsData.useOSLogo
             anchors.centerIn: parent
-            width: Theme.iconSize - 3
-            height: Theme.iconSize - 3
+            width: widgetThickness - 8
+            height: widgetThickness - 8
             colorOverride: SettingsData.osLogoColorOverride
             brightnessOverride: SettingsData.osLogoBrightness
             contrastOverride: SettingsData.osLogoContrast
@@ -64,9 +65,11 @@ Item {
 
         DankIcon {
             visible: !SettingsData.useOSLogo
-            anchors.centerIn: parent
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: 1
             name: "apps"
-            size: Theme.iconSize - 6
+            size: widgetThickness - 8
             color: Theme.surfaceText
         }
     }

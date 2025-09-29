@@ -35,8 +35,8 @@ DankPopout {
 
     popupWidth: 400
     popupHeight: contentLoader.item ? contentLoader.item.implicitHeight : 400
-    triggerX: Screen.width - 400 - Theme.spacingL
-    triggerY: Theme.barHeight - 4 + SettingsData.dankBarSpacing + Theme.popupDistance
+    triggerX: 0
+    triggerY: 0
     triggerWidth: 40
     positioning: "center"
     screen: triggerScreen

@@ -5,18 +5,20 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property bool isActive: false
     property string section: "right"
     property var popupTarget: null
     property var parentScreen: null
-    property real widgetHeight: 30
-    property real barHeight: 48
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    property real widgetThickness: 30
+    property real barThickness: 48
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
 
     signal clicked()
 
-    width: colorPickerIcon.width + horizontalPadding * 2
-    height: widgetHeight
+    width: isVertical ? widgetThickness : (colorPickerIcon.width + horizontalPadding * 2)
+    height: isVertical ? (colorPickerIcon.height + horizontalPadding * 2) : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -43,12 +45,10 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onPressed: {
-            console.log("Color picker button clicked!")
             root.colorPickerRequested();
         }
     }
 
-    // Signal to notify TopBar to open color picker
     signal colorPickerRequested()
 
 }

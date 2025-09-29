@@ -7,10 +7,13 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property var widgetData: null
-    property real widgetHeight: 30
+    property var parentScreen: null
+    property real widgetThickness: 30
     property string mountPath: (widgetData && widgetData.mountPath !== undefined) ? widgetData.mountPath : "/"
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
 
     property var selectedMount: {
         if (!DgopService.diskMounts || DgopService.diskMounts.length === 0) {
@@ -46,8 +49,8 @@ Rectangle {
         return parseFloat(percentStr) || 0
     }
 
-    width: diskContent.implicitWidth + horizontalPadding * 2
-    height: widgetHeight
+    width: isVertical ? widgetThickness : (diskContent.implicitWidth + horizontalPadding * 2)
+    height: isVertical ? (diskColumn.implicitHeight + horizontalPadding * 2) : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -100,10 +103,76 @@ Rectangle {
         target: SettingsData
     }
 
+    Loader {
+        id: tooltipLoader
+        active: false
+        sourceComponent: DankTooltip {}
+    }
+
+    MouseArea {
+        id: diskArea
+        anchors.fill: parent
+        hoverEnabled: root.isVertical
+        onEntered: {
+            if (root.isVertical && root.selectedMount) {
+                tooltipLoader.active = true
+                if (tooltipLoader.item) {
+                    const globalPos = mapToGlobal(width / 2, height / 2)
+                    const currentScreen = root.parentScreen || Screen
+                    const screenX = currentScreen ? currentScreen.x : 0
+                    const screenY = currentScreen ? currentScreen.y : 0
+                    const relativeY = globalPos.y - screenY
+                    const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (currentScreen.width - 400)
+                    tooltipLoader.item.show(root.selectedMount.mount, screenX + tooltipX, relativeY, currentScreen, true)
+                }
+            }
+        }
+        onExited: {
+            if (tooltipLoader.item) {
+                tooltipLoader.item.hide()
+            }
+            tooltipLoader.active = false
+        }
+    }
+
+    Column {
+        id: diskColumn
+        visible: root.isVertical
+        anchors.centerIn: parent
+        spacing: 1
+
+        DankIcon {
+            name: "storage"
+            size: Theme.iconSize - 8
+            color: {
+                if (root.diskUsagePercent > 90) {
+                    return Theme.tempDanger
+                }
+                if (root.diskUsagePercent > 75) {
+                    return Theme.tempWarning
+                }
+                return Theme.surfaceText
+            }
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        StyledText {
+            text: {
+                if (root.diskUsagePercent === undefined || root.diskUsagePercent === null || root.diskUsagePercent === 0) {
+                    return "--"
+                }
+                return root.diskUsagePercent.toFixed(0)
+            }
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.Medium
+            color: Theme.surfaceText
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
 
     Row {
         id: diskContent
-
+        visible: !root.isVertical
         anchors.centerIn: parent
         spacing: 3
 

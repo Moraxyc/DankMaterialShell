@@ -7,18 +7,20 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property bool showPercentage: true
     property bool showIcon: true
     property var toggleProcessList
     property string section: "right"
     property var popupTarget: null
     property var parentScreen: null
-    property real barHeight: 48
-    property real widgetHeight: 30
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    property real barThickness: 48
+    property real widgetThickness: 30
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
 
-    width: ramContent.implicitWidth + horizontalPadding * 2
-    height: widgetHeight
+    width: isVertical ? widgetThickness : (ramContent.implicitWidth + horizontalPadding * 2)
+    height: isVertical ? (ramColumn.implicitHeight + horizontalPadding * 2) : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -43,11 +45,10 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onPressed: {
             if (popupTarget && popupTarget.setTriggerPosition) {
-                const globalPos = mapToGlobal(0, 0);
-                const currentScreen = parentScreen || Screen;
-                const screenX = currentScreen.x || 0;
-                const relativeX = globalPos.x - screenX;
-                popupTarget.setTriggerPosition(relativeX, SettingsData.getPopupYPosition(barHeight), width, section, currentScreen);
+                const globalPos = mapToGlobal(0, 0)
+                const currentScreen = parentScreen || Screen
+                const pos = SettingsData.getPopupTriggerPosition(globalPos, currentScreen, barThickness, width)
+                popupTarget.setTriggerPosition(pos.x, pos.y, pos.width, section, currentScreen)
             }
             DgopService.setSortBy("memory");
             if (root.toggleProcessList) {
@@ -57,9 +58,47 @@ Rectangle {
         }
     }
 
+    Column {
+        id: ramColumn
+        visible: root.isVertical
+        anchors.centerIn: parent
+        spacing: 1
+
+        DankIcon {
+            name: "developer_board"
+            size: Theme.iconSize - 8
+            color: {
+                if (DgopService.memoryUsage > 90) {
+                    return Theme.tempDanger;
+                }
+
+                if (DgopService.memoryUsage > 75) {
+                    return Theme.tempWarning;
+                }
+
+                return Theme.surfaceText;
+            }
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        StyledText {
+            text: {
+                if (DgopService.memoryUsage === undefined || DgopService.memoryUsage === null || DgopService.memoryUsage === 0) {
+                    return "--";
+                }
+
+                return DgopService.memoryUsage.toFixed(0);
+            }
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.Medium
+            color: Theme.surfaceText
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+
     Row {
         id: ramContent
-
+        visible: !root.isVertical
         anchors.centerIn: parent
         spacing: 3
 

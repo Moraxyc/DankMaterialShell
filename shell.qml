@@ -25,6 +25,7 @@ import qs.Modules.OSD
 import qs.Modules.ProcessList
 import qs.Modules.Settings
 import qs.Modules.DankBar
+import qs.Modules.DankBar.Popouts
 import qs.Services
 
 ShellRoot {
@@ -46,13 +47,25 @@ ShellRoot {
         anchors.fill: parent
     }
 
-    Variants {
-        model: SettingsData.getFilteredScreens("dankBar")
+    Loader {
+        id: dankBarLoader
+        asynchronous: false
 
-        delegate: DankBar {
-            modelData: item
+        property var currentPosition: SettingsData.dankBarPosition
+
+        sourceComponent: DankBar {
             notepadVariants: notepadSlideoutVariants
             onColorPickerRequested: colorPickerModal.show()
+        }
+
+        onCurrentPositionChanged: {
+            console.log("DEBUG: DankBar position changed to:", currentPosition, "- recreating bar")
+            // Completely recreate the bar component
+            const component = sourceComponent
+            sourceComponent = null
+            Qt.callLater(() => {
+                sourceComponent = component
+            })
         }
     }
 

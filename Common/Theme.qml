@@ -16,7 +16,7 @@ Singleton {
 
     readonly property bool envDisableMatugen: Quickshell.env("DMS_DISABLE_MATUGEN") === "1" || Quickshell.env("DMS_DISABLE_MATUGEN") === "true"
 
-    readonly property real popupDistance: 4
+    readonly property real popupDistance: 0
 
     property string currentTheme: "blue"
     property string currentThemeCategory: "generic"

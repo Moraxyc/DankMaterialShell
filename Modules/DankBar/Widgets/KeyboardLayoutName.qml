@@ -10,12 +10,15 @@ import qs.Widgets
 Rectangle {
     id: root
 
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
+    property real widgetThickness: 30
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
     property string currentLayout: ""
     property string hyprlandKeyboard: ""
 
-    width: contentRow.implicitWidth + horizontalPadding * 2
-    height: widgetHeight
+    width: isVertical ? widgetThickness : (contentRow.implicitWidth + horizontalPadding * 2)
+    height: isVertical ? (contentColumn.implicitHeight + horizontalPadding * 2) : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -47,11 +50,42 @@ Rectangle {
         }
     }
 
+    Column {
+        id: contentColumn
+
+        anchors.centerIn: parent
+        spacing: 1
+        visible: root.isVertical
+
+        DankIcon {
+            name: "keyboard"
+            size: Theme.iconSize - 8
+            color: Theme.surfaceText
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        StyledText {
+            text: {
+                if (!currentLayout) return ""
+                const parts = currentLayout.split(" ")
+                if (parts.length > 0) {
+                    return parts[0].substring(0, 2).toUpperCase()
+                }
+                return currentLayout.substring(0, 2).toUpperCase()
+            }
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.Medium
+            color: Theme.surfaceText
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+
     Row {
         id: contentRow
 
         anchors.centerIn: parent
         spacing: Theme.spacingS
+        visible: !root.isVertical
 
         StyledText {
             text: currentLayout

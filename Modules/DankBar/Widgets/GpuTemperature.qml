@@ -7,6 +7,8 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property bool showPercentage: true
     property bool showIcon: true
     property var toggleProcessList
@@ -14,10 +16,10 @@ Rectangle {
     property var popupTarget: null
     property var parentScreen: null
     property var widgetData: null
-    property real barHeight: 48
-    property real widgetHeight: 30
+    property real barThickness: 48
+    property real widgetThickness: 30
     property int selectedGpuIndex: (widgetData && widgetData.selectedGpuIndex !== undefined) ? widgetData.selectedGpuIndex : 0
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
     property real displayTemp: {
         if (!DgopService.availableGpus || DgopService.availableGpus.length === 0) {
             return 0;
@@ -65,8 +67,8 @@ Rectangle {
         }
     }
 
-    width: gpuTempContent.implicitWidth + horizontalPadding * 2
-    height: widgetHeight
+    width: isVertical ? widgetThickness : (gpuTempContent.implicitWidth + horizontalPadding * 2)
+    height: isVertical ? (gpuTempColumn.implicitHeight + horizontalPadding * 2) : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -78,20 +80,14 @@ Rectangle {
     }
     Component.onCompleted: {
         DgopService.addRef(["gpu"]);
-        console.log("GpuTemperature widget - pciId:", widgetData ? widgetData.pciId : "no widgetData", "selectedGpuIndex:", widgetData ? widgetData.selectedGpuIndex : "no widgetData");
-        // Add this widget's PCI ID to the service
         if (widgetData && widgetData.pciId) {
-            console.log("Adding GPU PCI ID to service:", widgetData.pciId);
             DgopService.addGpuPciId(widgetData.pciId);
         } else {
-            console.log("No PCI ID in widget data, starting auto-detection");
-            // No PCI ID saved, auto-detect and save the first GPU
             autoSaveTimer.running = true;
         }
     }
     Component.onDestruction: {
         DgopService.removeRef(["gpu"]);
-        // Remove this widget's PCI ID from the service
         if (widgetData && widgetData.pciId) {
             DgopService.removeGpuPciId(widgetData.pciId);
         }
@@ -117,11 +113,10 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onPressed: {
             if (popupTarget && popupTarget.setTriggerPosition) {
-                const globalPos = mapToGlobal(0, 0);
-                const currentScreen = parentScreen || Screen;
-                const screenX = currentScreen.x || 0;
-                const relativeX = globalPos.x - screenX;
-                popupTarget.setTriggerPosition(relativeX, SettingsData.getPopupYPosition(barHeight), width, section, currentScreen);
+                const globalPos = mapToGlobal(0, 0)
+                const currentScreen = parentScreen || Screen
+                const pos = SettingsData.getPopupTriggerPosition(globalPos, currentScreen, barThickness, width)
+                popupTarget.setTriggerPosition(pos.x, pos.y, pos.width, section, currentScreen)
             }
             DgopService.setSortBy("cpu");
             if (root.toggleProcessList) {
@@ -131,9 +126,47 @@ Rectangle {
         }
     }
 
+    Column {
+        id: gpuTempColumn
+        visible: root.isVertical
+        anchors.centerIn: parent
+        spacing: 1
+
+        DankIcon {
+            name: "auto_awesome_mosaic"
+            size: Theme.iconSize - 8
+            color: {
+                if (root.displayTemp > 80) {
+                    return Theme.tempDanger;
+                }
+
+                if (root.displayTemp > 65) {
+                    return Theme.tempWarning;
+                }
+
+                return Theme.surfaceText;
+            }
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        StyledText {
+            text: {
+                if (root.displayTemp === undefined || root.displayTemp === null || root.displayTemp === 0) {
+                    return "--";
+                }
+
+                return Math.round(root.displayTemp).toString();
+            }
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.Medium
+            color: Theme.surfaceText
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+
     Row {
         id: gpuTempContent
-
+        visible: !root.isVertical
         anchors.centerIn: parent
         spacing: 3
 

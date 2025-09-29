@@ -8,10 +8,13 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property int availableWidth: 400
     readonly property int baseWidth: contentRow.implicitWidth + Theme.spacingS * 2
     readonly property int maxNormalWidth: 456
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    property real widgetThickness: 30
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
 
     function formatNetworkSpeed(bytesPerSec) {
         if (bytesPerSec < 1024) {
@@ -25,8 +28,8 @@ Rectangle {
         }
     }
 
-    width: contentRow.implicitWidth + horizontalPadding * 2
-    height: widgetHeight
+    width: isVertical ? widgetThickness : (contentRow.implicitWidth + horizontalPadding * 2)
+    height: isVertical ? (contentColumn.implicitHeight + horizontalPadding * 2) : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -51,11 +54,53 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
     }
 
+    Column {
+        id: contentColumn
+
+        anchors.centerIn: parent
+        spacing: 2
+        visible: root.isVertical
+
+        DankIcon {
+            name: "network_check"
+            size: Theme.iconSize - 8
+            color: Theme.surfaceText
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        StyledText {
+            text: {
+                const rate = DgopService.networkRxRate
+                if (rate < 1024) return rate.toFixed(0)
+                if (rate < 1024 * 1024) return (rate / 1024).toFixed(0) + "K"
+                return (rate / (1024 * 1024)).toFixed(0) + "M"
+            }
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.Medium
+            color: Theme.info
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        StyledText {
+            text: {
+                const rate = DgopService.networkTxRate
+                if (rate < 1024) return rate.toFixed(0)
+                if (rate < 1024 * 1024) return (rate / 1024).toFixed(0) + "K"
+                return (rate / (1024 * 1024)).toFixed(0) + "M"
+            }
+            font.pixelSize: Theme.fontSizeSmall
+            font.weight: Font.Medium
+            color: Theme.error
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+
     Row {
         id: contentRow
 
         anchors.centerIn: parent
         spacing: Theme.spacingS
+        visible: !root.isVertical
 
         DankIcon {
             name: "network_check"

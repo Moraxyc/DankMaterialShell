@@ -6,18 +6,20 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property string section: "center"
     property var popupTarget: null
     property var parentScreen: null
-    property real barHeight: 48
-    property real widgetHeight: 30
+    property real barThickness: 48
+    property real widgetThickness: 30
     readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 2 : Theme.spacingS
 
     signal clicked()
 
     visible: SettingsData.weatherEnabled
-    width: visible ? Math.min(100, weatherRow.implicitWidth + horizontalPadding * 2) : 0
-    height: widgetHeight
+    width: isVertical ? widgetThickness : (visible ? Math.min(100, weatherRow.implicitWidth + horizontalPadding * 2) : 0)
+    height: isVertical ? (weatherColumn.implicitHeight + horizontalPadding * 2) : widgetThickness
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -32,9 +34,37 @@ Rectangle {
         service: WeatherService
     }
 
+    Column {
+        id: weatherColumn
+        visible: root.isVertical
+        anchors.centerIn: parent
+        spacing: 1
+
+        DankIcon {
+            name: WeatherService.getWeatherIcon(WeatherService.weather.wCode)
+            size: Theme.iconSize - 4
+            color: Theme.primary
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
+        StyledText {
+            text: {
+                const temp = SettingsData.useFahrenheit ? WeatherService.weather.tempF : WeatherService.weather.temp;
+                if (temp === undefined || temp === null || temp === 0) {
+                    return "--";
+                }
+                return temp;
+            }
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.surfaceText
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+
     Row {
         id: weatherRow
 
+        visible: !root.isVertical
         anchors.centerIn: parent
         spacing: Theme.spacingXS
 
@@ -69,11 +99,10 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onPressed: {
             if (popupTarget && popupTarget.setTriggerPosition) {
-                const globalPos = mapToGlobal(0, 0);
-                const currentScreen = parentScreen || Screen;
-                const screenX = currentScreen.x || 0;
-                const relativeX = globalPos.x - screenX;
-                popupTarget.setTriggerPosition(relativeX, SettingsData.getPopupYPosition(barHeight), width, section, currentScreen);
+                const globalPos = mapToGlobal(0, 0)
+                const currentScreen = parentScreen || Screen
+                const pos = SettingsData.getPopupTriggerPosition(globalPos, currentScreen, barThickness, width)
+                popupTarget.setTriggerPosition(pos.x, pos.y, pos.width, section, currentScreen)
             }
             root.clicked();
         }

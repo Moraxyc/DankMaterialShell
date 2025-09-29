@@ -77,7 +77,7 @@ PanelWindow {
     implicitWidth: 400
     implicitHeight: 122
     onScreenYChanged: {
-        if (SettingsData.dankBarAtBottom) {
+        if (SettingsData.dankBarPosition === SettingsData.Position.Bottom) {
             margins.bottom = Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4 + screenY
         } else {
             margins.top = Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4 + screenY
@@ -115,14 +115,14 @@ PanelWindow {
     }
 
     anchors {
-        top: !SettingsData.dankBarAtBottom
-        bottom: SettingsData.dankBarAtBottom
+        top: SettingsData.dankBarPosition === SettingsData.Position.Top
+        bottom: SettingsData.dankBarPosition === SettingsData.Position.Bottom
         right: true
     }
 
     margins {
-        top: SettingsData.dankBarAtBottom ? 0 : (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4)
-        bottom: SettingsData.dankBarAtBottom ? (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4) : 0
+        top: SettingsData.dankBarPosition === SettingsData.Position.Bottom ? 0 : (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4)
+        bottom: SettingsData.dankBarPosition === SettingsData.Position.Bottom ? (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4) : 0
         right: 12
     }
 

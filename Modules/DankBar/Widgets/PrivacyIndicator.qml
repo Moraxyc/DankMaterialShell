@@ -7,17 +7,20 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     property string section: "right"
     property var popupTarget: null
     property var parentScreen: null
-    property real widgetHeight: 30
+    property real widgetThickness: 30
     readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 2 : Theme.spacingS
     readonly property bool hasActivePrivacy: PrivacyService.anyPrivacyActive
     readonly property int activeCount: PrivacyService.microphoneActive + PrivacyService.cameraActive + PrivacyService.screensharingActive
     readonly property real contentWidth: hasActivePrivacy ? (activeCount * 18 + (activeCount - 1) * Theme.spacingXS) : 0
+    readonly property real contentHeight: hasActivePrivacy ? (activeCount * 18 + (activeCount - 1) * Theme.spacingXS) : 0
 
-    width: hasActivePrivacy ? (contentWidth + horizontalPadding * 2) : 0
-    height: hasActivePrivacy ? widgetHeight : 0
+    width: isVertical ? widgetThickness : (hasActivePrivacy ? (contentWidth + horizontalPadding * 2) : 0)
+    height: isVertical ? (hasActivePrivacy ? (contentHeight + horizontalPadding * 2) : 0) : (hasActivePrivacy ? widgetThickness : 0)
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     visible: hasActivePrivacy
     opacity: hasActivePrivacy ? 1 : 0
@@ -43,10 +46,76 @@ Rectangle {
         }
     }
 
+    Column {
+        anchors.centerIn: parent
+        spacing: Theme.spacingXS
+        visible: root.isVertical && hasActivePrivacy
+
+        Item {
+            width: 18
+            height: 18
+            visible: PrivacyService.microphoneActive
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            DankIcon {
+                name: "mic"
+                size: Theme.iconSizeSmall
+                color: Theme.error
+                filled: true
+                anchors.centerIn: parent
+            }
+
+        }
+
+        Item {
+            width: 18
+            height: 18
+            visible: PrivacyService.cameraActive
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            DankIcon {
+                name: "camera_video"
+                size: Theme.iconSizeSmall
+                color: Theme.surfaceText
+                filled: true
+                anchors.centerIn: parent
+            }
+
+            Rectangle {
+                width: 6
+                height: 6
+                radius: 3
+                color: Theme.error
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.rightMargin: -2
+                anchors.topMargin: -1
+            }
+
+        }
+
+        Item {
+            width: 18
+            height: 18
+            visible: PrivacyService.screensharingActive
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            DankIcon {
+                name: "screen_share"
+                size: Theme.iconSizeSmall
+                color: Theme.warning
+                filled: true
+                anchors.centerIn: parent
+            }
+
+        }
+
+    }
+
     Row {
         anchors.centerIn: parent
         spacing: Theme.spacingXS
-        visible: hasActivePrivacy
+        visible: !root.isVertical && hasActivePrivacy
 
         Item {
             width: 18
@@ -158,7 +227,17 @@ Rectangle {
     }
 
     Behavior on width {
-        enabled: hasActivePrivacy && visible
+        enabled: hasActivePrivacy && visible && !isVertical
+
+        NumberAnimation {
+            duration: Theme.mediumDuration
+            easing.type: Theme.emphasizedEasing
+        }
+
+    }
+
+    Behavior on height {
+        enabled: hasActivePrivacy && visible && isVertical
 
         NumberAnimation {
             duration: Theme.mediumDuration

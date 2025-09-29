@@ -23,6 +23,7 @@ DankPopout {
     }
 
     function setTriggerPosition(x, y, width, section, screen) {
+        console.log("AppDrawer setTriggerPosition:", "x:", x, "y:", y, "width:", width, "section:", section, "barPos:", SettingsData.dankBarPosition)
         triggerX = x
         triggerY = y
         triggerWidth = width

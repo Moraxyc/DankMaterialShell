@@ -7,6 +7,8 @@ import qs.Widgets
 Rectangle {
     id: root
 
+    property bool isVertical: axis?.isVertical ?? false
+    property var axis: null
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property bool playerAvailable: activePlayer !== null
     property bool compactMode: false
@@ -21,24 +23,33 @@ Rectangle {
         }
     }
     readonly property int currentContentWidth: {
-        // Calculate actual content width:
-        // AudioViz (20) + spacing + [text + spacing] + controls (prev:20 + spacing + play:24 + spacing + next:20) + padding
+        if (isVertical) {
+            return widgetThickness;
+        }
         const controlsWidth = 20 + Theme.spacingXS + 24 + Theme.spacingXS + 20;
-        // ~72px total
         const audioVizWidth = 20;
         const contentWidth = audioVizWidth + Theme.spacingXS + controlsWidth;
         return contentWidth + (textWidth > 0 ? textWidth + Theme.spacingXS : 0) + horizontalPadding * 2;
     }
+    readonly property int currentContentHeight: {
+        if (!isVertical) {
+            return widgetThickness;
+        }
+        const audioVizHeight = 20;
+        const playButtonHeight = 24;
+        return audioVizHeight + Theme.spacingXS + playButtonHeight + horizontalPadding * 2;
+    }
     property string section: "center"
     property var popupTarget: null
     property var parentScreen: null
-    property real barHeight: 48
-    property real widgetHeight: 30
-    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetHeight / 30))
+    property real barThickness: 48
+    property real widgetThickness: 30
+    readonly property real horizontalPadding: SettingsData.dankBarNoBackground ? 0 : Math.max(Theme.spacingXS, Theme.spacingS * (widgetThickness / 30))
 
     signal clicked()
 
-    height: widgetHeight
+    width: currentContentWidth
+    height: currentContentHeight
     radius: SettingsData.dankBarNoBackground ? 0 : Theme.cornerRadius
     color: {
         if (SettingsData.dankBarNoBackground) {
@@ -57,6 +68,7 @@ Rectangle {
                 target: root
                 opacity: 1
                 width: currentContentWidth
+                height: currentContentHeight
             }
 
         },
@@ -67,7 +79,8 @@ Rectangle {
             PropertyChanges {
                 target: root
                 opacity: 0
-                width: 0
+                width: isVertical ? widgetThickness : 0
+                height: isVertical ? 0 : widgetThickness
             }
 
         }
@@ -83,7 +96,7 @@ Rectangle {
                 }
 
                 NumberAnimation {
-                    properties: "opacity,width"
+                    properties: isVertical ? "opacity,height" : "opacity,width"
                     duration: Theme.shortDuration
                     easing.type: Theme.standardEasing
                 }
@@ -96,7 +109,7 @@ Rectangle {
             to: "shown"
 
             NumberAnimation {
-                properties: "opacity,width"
+                properties: isVertical ? "opacity,height" : "opacity,width"
                 duration: Theme.shortDuration
                 easing.type: Theme.standardEasing
             }
@@ -104,9 +117,106 @@ Rectangle {
         }
     ]
 
+    Column {
+        id: verticalLayout
+        visible: root.isVertical
+        anchors.centerIn: parent
+        spacing: Theme.spacingXS
+
+        AudioVisualization {
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (root.popupTarget && root.popupTarget.setTriggerPosition) {
+                        const globalPos = parent.mapToGlobal(0, 0)
+                        const currentScreen = root.parentScreen || Screen
+                        const pos = SettingsData.getPopupTriggerPosition(globalPos, currentScreen, root.barThickness, parent.width)
+                        root.popupTarget.setTriggerPosition(pos.x, pos.y, pos.width, root.section, currentScreen)
+                    }
+                    root.clicked()
+                }
+                onEntered: {
+                    tooltipLoader.active = true
+                    if (tooltipLoader.item && activePlayer) {
+                        const globalPos = parent.mapToGlobal(parent.width / 2, parent.height / 2)
+                        const screenX = root.parentScreen ? root.parentScreen.x : 0
+                        const screenY = root.parentScreen ? root.parentScreen.y : 0
+                        const relativeY = globalPos.y - screenY
+                        const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - 400)
+
+                        let identity = activePlayer.identity || ""
+                        let isWebMedia = identity.toLowerCase().includes("firefox") || identity.toLowerCase().includes("chrome") || identity.toLowerCase().includes("chromium")
+                        let title = activePlayer.trackTitle || "Unknown Track"
+                        let subtitle = ""
+                        if (isWebMedia && activePlayer.trackTitle) {
+                            subtitle = activePlayer.trackArtist || identity
+                        } else {
+                            subtitle = activePlayer.trackArtist || ""
+                        }
+                        let tooltipText = subtitle.length > 0 ? title + " • " + subtitle : title
+
+                        tooltipLoader.item.show(tooltipText, screenX + tooltipX, relativeY, root.parentScreen, true)
+                    }
+                }
+                onExited: {
+                    if (tooltipLoader.item) {
+                        tooltipLoader.item.hide()
+                    }
+                    tooltipLoader.active = false
+                }
+            }
+        }
+
+        Rectangle {
+            width: 24
+            height: 24
+            radius: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: activePlayer && activePlayer.playbackState === 1 ? Theme.primary : Theme.primaryHover
+            visible: root.playerAvailable
+            opacity: activePlayer ? 1 : 0.3
+
+            DankIcon {
+                anchors.centerIn: parent
+                name: activePlayer && activePlayer.playbackState === 1 ? "pause" : "play_arrow"
+                size: 14
+                color: activePlayer && activePlayer.playbackState === 1 ? Theme.background : Theme.primary
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                enabled: root.playerAvailable
+                hoverEnabled: enabled
+                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+                onClicked: (mouse) => {
+                    if (!activePlayer) return
+                    if (mouse.button === Qt.LeftButton) {
+                        activePlayer.togglePlaying()
+                    } else if (mouse.button === Qt.MiddleButton) {
+                        activePlayer.previous()
+                    } else if (mouse.button === Qt.RightButton) {
+                        activePlayer.next()
+                    }
+                }
+            }
+        }
+    }
+
+    Loader {
+        id: tooltipLoader
+        active: false
+        sourceComponent: DankTooltip {}
+    }
+
     Row {
         id: mediaRow
 
+        visible: !root.isVertical
         anchors.centerIn: parent
         spacing: Theme.spacingXS
 
@@ -208,13 +318,12 @@ Rectangle {
                     cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                     onPressed: {
                         if (root.popupTarget && root.popupTarget.setTriggerPosition) {
-                            const globalPos = mapToGlobal(0, 0);
-                            const currentScreen = root.parentScreen || Screen;
-                            const screenX = currentScreen.x || 0;
-                            const relativeX = globalPos.x - screenX;
-                            root.popupTarget.setTriggerPosition(relativeX, SettingsData.getPopupYPosition(barHeight), root.width, root.section, currentScreen);
+                            const globalPos = mapToGlobal(0, 0)
+                            const currentScreen = root.parentScreen || Screen
+                            const pos = SettingsData.getPopupTriggerPosition(globalPos, currentScreen, barThickness, root.width)
+                            root.popupTarget.setTriggerPosition(pos.x, pos.y, pos.width, root.section, currentScreen)
                         }
-                        root.clicked();
+                        root.clicked()
                     }
                 }
 
@@ -330,7 +439,13 @@ Rectangle {
             duration: Theme.shortDuration
             easing.type: Theme.standardEasing
         }
+    }
 
+    Behavior on height {
+        NumberAnimation {
+            duration: Theme.shortDuration
+            easing.type: Theme.standardEasing
+        }
     }
 
 }

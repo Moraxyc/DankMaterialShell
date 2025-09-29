@@ -16,6 +16,7 @@ PanelWindow {
     property real triggerX: 0
     property real triggerY: 0
     property real triggerWidth: 40
+    property string triggerSection: ""
     property string positioning: "center"
     property int animationDuration: Theme.mediumDuration
     property var animationEasing: Theme.emphasizedEasing
@@ -93,18 +94,31 @@ PanelWindow {
         readonly property real screenWidth: root.screen ? root.screen.width : 1920
         readonly property real screenHeight: root.screen ? root.screen.height : 1080
         readonly property real calculatedX: {
-            if (positioning === "center") {
-                var centerX = triggerX + (triggerWidth / 2) - (popupWidth / 2)
-                return Math.max(Theme.spacingM, Math.min(screenWidth - popupWidth - Theme.spacingM, centerX))
-            } else if (positioning === "left") {
-                return Math.max(Theme.spacingM, triggerX)
-            } else if (positioning === "right") {
-                return Math.min(screenWidth - popupWidth - Theme.spacingM, triggerX + triggerWidth - popupWidth)
+            if (SettingsData.dankBarPosition === SettingsData.Position.Left) {
+                return Math.max(0, Math.min(screenWidth - popupWidth - Theme.spacingM, triggerY + SettingsData.dankBarSpacing + 10))
+            } else if (SettingsData.dankBarPosition === SettingsData.Position.Right) {
+                return Math.max(Theme.spacingM, Math.min(screenWidth - popupWidth - Theme.spacingM, triggerY - popupWidth - SettingsData.dankBarSpacing - 10))
+            } else {
+                if (positioning === "center") {
+                    var centerX = triggerX + (triggerWidth / 2) - (popupWidth / 2)
+                    return Math.max(Theme.spacingM, Math.min(screenWidth - popupWidth - Theme.spacingM, centerX))
+                } else if (positioning === "left") {
+                    return Math.max(Theme.spacingM, triggerX)
+                } else if (positioning === "right") {
+                    return Math.min(screenWidth - popupWidth - Theme.spacingM, triggerX + triggerWidth - popupWidth)
+                }
+                return triggerX
             }
-            return triggerX
         }
         readonly property real calculatedY: {
-            if (SettingsData.dankBarAtBottom) {
+            if (SettingsData.dankBarPosition === SettingsData.Position.Left || SettingsData.dankBarPosition === SettingsData.Position.Right) {
+                if (triggerSection === "center") {
+                    var centerY = (screenHeight - popupHeight) / 2
+                    return Math.max(Theme.spacingM, Math.min(screenHeight - popupHeight - Theme.spacingM, centerY))
+                }
+                var popoutY = triggerX
+                return Math.max(Theme.spacingM, Math.min(screenHeight - popupHeight - Theme.spacingM, popoutY))
+            } else if (SettingsData.dankBarPosition === SettingsData.Position.Bottom) {
                 return Math.max(Theme.spacingM, Math.min(screenHeight - popupHeight - Theme.spacingM, screenHeight - triggerY - popupHeight - SettingsData.dankBarSpacing - 10))
             } else {
                 return Math.max(0, Math.min(screenHeight - popupHeight - Theme.spacingM, triggerY + SettingsData.dankBarSpacing + 10))
