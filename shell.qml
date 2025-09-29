@@ -67,15 +67,30 @@ ShellRoot {
         }
     }
 
-    Variants {
-        model: SettingsData.getFilteredScreens("dock")
+    Loader {
+        id: dockLoader
+        active: true
+        asynchronous: false
 
-        delegate: Dock {
-            modelData: item
+        property var currentPosition: SettingsData.dockPosition
+
+        sourceComponent: Dock {
             contextMenu: dockContextMenuLoader.item ? dockContextMenuLoader.item : null
-            Component.onCompleted: {
+        }
+
+        onLoaded: {
+            if (item) {
                 dockContextMenuLoader.active = true
             }
+        }
+
+        onCurrentPositionChanged: {
+            console.log("DEBUG: Dock position changed to:", currentPosition, "- recreating dock")
+            const comp = sourceComponent
+            sourceComponent = null
+            Qt.callLater(() => {
+                sourceComponent = comp
+            })
         }
     }
 

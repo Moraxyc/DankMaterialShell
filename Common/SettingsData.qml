@@ -125,6 +125,10 @@ Singleton {
     property bool showDock: false
     property bool dockAutoHide: false
     property bool dockGroupByApp: false
+    property bool dockOpenOnOverview: false
+    property int dockPosition: SettingsData.Position.Bottom
+    property real dockSpacing: 4
+    property real dockBottomGap: 0
     property real cornerRadius: 12
     property bool notificationOverlayEnabled: false
     property bool dankBarAutoHide: false
@@ -153,6 +157,7 @@ Singleton {
     readonly property string _configDir: Paths.strip(_configUrl)
 
     signal forceDankBarLayoutRefresh
+    signal forceDockLayoutRefresh
     signal widgetDataChanged
     signal workspaceIconsUpdated
 
@@ -319,11 +324,15 @@ Singleton {
                 showDock = settings.showDock !== undefined ? settings.showDock : false
                 dockAutoHide = settings.dockAutoHide !== undefined ? settings.dockAutoHide : false
                 dockGroupByApp = settings.dockGroupByApp !== undefined ? settings.dockGroupByApp : false
+                dockPosition = settings.dockPosition !== undefined ? settings.dockPosition : SettingsData.Position.Bottom
+                dockSpacing = settings.dockSpacing !== undefined ? settings.dockSpacing : 4
+                dockBottomGap = settings.dockBottomGap !== undefined ? settings.dockBottomGap : 0
                 cornerRadius = settings.cornerRadius !== undefined ? settings.cornerRadius : 12
                 notificationOverlayEnabled = settings.notificationOverlayEnabled !== undefined ? settings.notificationOverlayEnabled : false
                 dankBarAutoHide = settings.dankBarAutoHide !== undefined ? settings.dankBarAutoHide : (settings.topBarAutoHide !== undefined ? settings.topBarAutoHide : false)
                 dankBarOpenOnOverview = settings.dankBarOpenOnOverview !== undefined ? settings.dankBarOpenOnOverview : (settings.topBarOpenOnOverview !== undefined ? settings.topBarOpenOnOverview : false)
                 dankBarVisible = settings.dankBarVisible !== undefined ? settings.dankBarVisible : (settings.topBarVisible !== undefined ? settings.topBarVisible : true)
+                dockOpenOnOverview = settings.dockOpenOnOverview !== undefined ? settings.dockOpenOnOverview : false
                 notificationTimeoutLow = settings.notificationTimeoutLow !== undefined ? settings.notificationTimeoutLow : 5000
                 notificationTimeoutNormal = settings.notificationTimeoutNormal !== undefined ? settings.notificationTimeoutNormal : 5000
                 notificationTimeoutCritical = settings.notificationTimeoutCritical !== undefined ? settings.notificationTimeoutCritical : 0
@@ -433,6 +442,10 @@ Singleton {
                                                 "showDock": showDock,
                                                 "dockAutoHide": dockAutoHide,
                                                 "dockGroupByApp": dockGroupByApp,
+                                                "dockOpenOnOverview": dockOpenOnOverview,
+                                                "dockPosition": dockPosition,
+                                                "dockSpacing": dockSpacing,
+                                                "dockBottomGap": dockBottomGap,
                                                 "cornerRadius": cornerRadius,
                                                 "notificationOverlayEnabled": notificationOverlayEnabled,
                                                 "dankBarAutoHide": dankBarAutoHide,
@@ -964,8 +977,13 @@ Singleton {
 
     function setShowDock(enabled) {
         showDock = enabled
-        if (enabled && dankBarPosition === SettingsData.Position.Bottom) {
-            setDankBarPosition(SettingsData.Position.Top)
+        if (enabled && dankBarPosition === SettingsData.Position.Top) {
+            setDockPosition(SettingsData.Position.Bottom)
+            return
+        }
+        if (enabled && dankBarPosition === SettingsData.Position.Top) {
+            setDockPosition(SettingsData.Position.Bottom)
+            return
         }
         saveSettings()
     }
@@ -977,6 +995,11 @@ Singleton {
 
     function setDockGroupByApp(enabled) {
         dockGroupByApp = enabled
+        saveSettings()
+    }
+
+    function setdockOpenOnOverview(enabled) {
+        dockOpenOnOverview = enabled
         saveSettings()
     }
 
@@ -1058,8 +1081,37 @@ Singleton {
     function setDankBarPosition(position) {
         dankBarPosition = position
         if (position === SettingsData.Position.Bottom && showDock) {
-            setShowDock(false)
+            setDockPosition(SettingsData.Position.Top)
+            return
         }
+        if (position === SettingsData.Position.Top && showDock) {
+            setDockPosition(SettingsData.Position.Bottom)
+            return
+        }
+        saveSettings()
+    }
+
+    function setDockPosition(position) {
+        dockPosition = position
+        if (position === SettingsData.Position.Bottom && dankBarAtBottom && showDock) {
+            setDankBarAtBottom(false)
+        }
+        if (position === SettingsData.Position.Top && !dankBarAtBottom && showDock) {
+            setDankBarAtBottom(true)
+        }
+        saveSettings()
+        Qt.callLater(() => forceDockLayoutRefresh())
+    }
+    function setDockSpacing(spacing) {
+        dockSpacing = spacing
+        saveSettings()
+    }
+    function setDockBottomGap(gap) {
+        dockBottomGap = gap
+        saveSettings()
+    }
+    function setDockOpenOnOverview(enabled) {
+        dockOpenOnOverview = enabled
         saveSettings()
     }
 
