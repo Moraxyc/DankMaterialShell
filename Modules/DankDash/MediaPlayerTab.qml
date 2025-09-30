@@ -471,7 +471,6 @@ Item {
                                     onClicked: {
                                         if (modelData) {
                                             Pipewire.preferredDefaultAudioSink = modelData
-                                            console.log("Current default sink after change:", AudioService.sink ? AudioService.sink.name : "null")
                                         }
                                         audioDevicesButton.devicesExpanded = false
                                     }
@@ -1069,11 +1068,11 @@ Item {
             height: 40
             radius: 20
             x: parent.width - 40 - Theme.spacingM
-            y: 130  
+            y: 130
             color: volumeButtonArea.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.2) : "transparent"
             border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.3)
             border.width: 1
-            z: 100
+            z: 101
 
             property bool volumeExpanded: false
 
@@ -1117,210 +1116,6 @@ Item {
 
         }
 
-        Rectangle {
-            id: volumeSliderPanel
-            width: 60
-            height: 180
-            radius: Theme.cornerRadius * 2
-            x: parent.width + Theme.spacingS
-            y: volumeButton.y - 50
-            color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.95)
-            border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.3)
-            border.width: 1
-            visible: volumeButton.volumeExpanded
-            clip: true
-            z: 110
-
-            opacity: volumeButton.volumeExpanded ? 1 : 0
-
-            Behavior on opacity {
-                NumberAnimation { 
-                    duration: Anims.durShort
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Anims.standard
-                }
-            }
-
-            Item {
-                anchors.fill: parent
-                anchors.margins: Theme.spacingS
-
-                Item {
-                    id: volumeSlider
-                    width: parent.width * 0.5
-                    height: parent.height - Theme.spacingXL * 2
-                    anchors.top: parent.top
-                    anchors.topMargin: Theme.spacingS
-                    anchors.horizontalCenter: parent.horizontalCenter
-
-                    property bool dragging: false
-                    property bool containsMouse: volumeSliderArea.containsMouse
-                    property bool active: volumeSliderArea.containsMouse || volumeSliderArea.pressed || dragging
-
-                    Rectangle {
-                        id: sliderTrack
-                        width: parent.width
-                        height: parent.height
-                        anchors.centerIn: parent
-                        color: Theme.surfaceContainerHigh
-                        radius: Theme.cornerRadius
-                    }
-
-                    Rectangle {
-                        id: sliderFill
-                        width: parent.width
-                        height: defaultSink ? (Math.min(1.0, defaultSink.audio.volume) * parent.height) : 0
-                        anchors.bottom: parent.bottom
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.primary
-                        bottomLeftRadius: Theme.cornerRadius
-                        bottomRightRadius: Theme.cornerRadius
-                        topLeftRadius: 0
-                        topRightRadius: 0
-                    }
-
-                    Rectangle {
-                        id: sliderHandle
-                        width: parent.width + 8
-                        height: 8
-                        radius: Theme.cornerRadius
-                        y: {
-                            const ratio = defaultSink ? Math.min(1.0, defaultSink.audio.volume) : 0
-                            const travel = parent.height - height
-                            return Math.max(0, Math.min(travel, travel * (1 - ratio)))
-                        }
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: Theme.primary
-                        border.width: 3
-                        border.color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 1.0)
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: Theme.cornerRadius
-                            color: Theme.onPrimary
-                            opacity: volumeSliderArea.pressed ? 0.16 : (volumeSliderArea.containsMouse ? 0.08 : 0)
-                            visible: opacity > 0
-                        }
-
-                        Rectangle {
-                            id: ripple
-                            anchors.centerIn: parent
-                            width: 0
-                            height: 0
-                            radius: width / 2
-                            color: Theme.onPrimary
-                            opacity: 0
-
-                            function start() {
-                                opacity = 0.16
-                                width = 0
-                                height = 0
-                                rippleAnimation.start()
-                            }
-
-                            SequentialAnimation {
-                                id: rippleAnimation
-                                NumberAnimation {
-                                    target: ripple
-                                    properties: "width,height"
-                                    to: 28
-                                    duration: 180
-                                }
-                                NumberAnimation {
-                                    target: ripple
-                                    property: "opacity"
-                                    to: 0
-                                    duration: 150
-                                }
-                            }
-                        }
-
-                        TapHandler {
-                            acceptedButtons: Qt.LeftButton
-                            onPressedChanged: {
-                                if (pressed) {
-                                    ripple.start()
-                                }
-                            }
-                        }
-
-                        scale: active ? 1.05 : 1.0
-
-                        Behavior on scale {
-                            NumberAnimation {
-                                duration: Anims.durShort
-                                easing.type: Easing.BezierSpline
-                                easing.bezierCurve: Anims.standard
-                            }
-                        }
-                    }
-                    
-                    MouseArea {
-                        id: volumeSliderArea
-                        anchors.fill: parent
-                        anchors.margins: -12
-                        enabled: defaultSink !== null
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        preventStealing: true
-                        
-                        onEntered: {
-                            volumeHideTimer.stop()
-                        }
-                        
-                        onExited: {
-                            volumeHideTimer.restart()
-                        }
-                        
-                        onPressed: function(mouse) {
-                            parent.dragging = true
-                            updateVolume(mouse)
-                        }
-                        
-                        onReleased: {
-                            parent.dragging = false
-                        }
-                        
-                        onPositionChanged: function(mouse) {
-                            if (pressed) {
-                                updateVolume(mouse)
-                            }
-                        }
-                        
-                        onClicked: function(mouse) {
-                            updateVolume(mouse)
-                        }
-                        
-                        onWheel: wheelEvent => {
-                            const step = Math.max(0.5, 100 / 100)
-                            adjustVolume(wheelEvent.angleDelta.y > 0 ? step : -step)
-                            wheelEvent.accepted = true
-                        }
-                        
-                        function updateVolume(mouse) {
-                            if (defaultSink) {
-                                const ratio = 1.0 - (mouse.y / height)
-                                const volume = Math.max(0, Math.min(1, ratio))
-                                defaultSink.audio.volume = volume
-                                if (volume > 0 && defaultSink.audio.muted) {
-                                    defaultSink.audio.muted = false
-                                }
-                            }
-                        }
-                    }
-                }
-
-                StyledText {
-                    anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottomMargin: Theme.spacingL
-                    text: defaultSink ? Math.round(defaultSink.audio.volume * 100) + "%" : "0%"
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.surfaceText
-                    font.weight: Font.Medium
-                }
-            }
-        }
 
         Rectangle {
             id: audioDevicesButton
@@ -1374,5 +1169,237 @@ Item {
             sourceComponent: DankTooltip {}
         }
 
+    }
+
+    Popup {
+        id: volumeSliderPanel
+        width: 60
+        height: 180
+        x: root.width + Theme.spacingS
+        y: volumeButton.y - 50
+        visible: volumeButton.volumeExpanded
+        closePolicy: Popup.NoAutoClose
+        modal: false
+        dim: false
+        padding: 0
+
+        background: Rectangle {
+            radius: Theme.cornerRadius * 2
+            color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.95)
+            border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.3)
+            border.width: 1
+
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowHorizontalOffset: 0
+                shadowVerticalOffset: 8
+                shadowBlur: 1.0
+                shadowColor: Qt.rgba(0, 0, 0, 0.4)
+                shadowOpacity: 0.7
+            }
+        }
+
+        enter: Transition {
+            NumberAnimation {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Anims.durShort
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Anims.standard
+            }
+        }
+
+        exit: Transition {
+            NumberAnimation {
+                property: "opacity"
+                from: 1
+                to: 0
+                duration: Anims.durShort
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Anims.standard
+            }
+        }
+
+        Item {
+            anchors.fill: parent
+            anchors.margins: Theme.spacingS
+
+            Item {
+                id: volumeSlider
+                width: parent.width * 0.5
+                height: parent.height - Theme.spacingXL * 2
+                anchors.top: parent.top
+                anchors.topMargin: Theme.spacingS
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                property bool dragging: false
+                property bool containsMouse: volumeSliderArea.containsMouse
+                property bool active: volumeSliderArea.containsMouse || volumeSliderArea.pressed || dragging
+
+                Rectangle {
+                    id: sliderTrack
+                    width: parent.width
+                    height: parent.height
+                    anchors.centerIn: parent
+                    color: Theme.surfaceContainerHigh
+                    radius: Theme.cornerRadius
+                }
+
+                Rectangle {
+                    id: sliderFill
+                    width: parent.width
+                    height: defaultSink ? (Math.min(1.0, defaultSink.audio.volume) * parent.height) : 0
+                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: Theme.primary
+                    bottomLeftRadius: Theme.cornerRadius
+                    bottomRightRadius: Theme.cornerRadius
+                    topLeftRadius: 0
+                    topRightRadius: 0
+                }
+
+                Rectangle {
+                    id: sliderHandle
+                    width: parent.width + 8
+                    height: 8
+                    radius: Theme.cornerRadius
+                    y: {
+                        const ratio = defaultSink ? Math.min(1.0, defaultSink.audio.volume) : 0
+                        const travel = parent.height - height
+                        return Math.max(0, Math.min(travel, travel * (1 - ratio)))
+                    }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: Theme.primary
+                    border.width: 3
+                    border.color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 1.0)
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Theme.cornerRadius
+                        color: Theme.onPrimary
+                        opacity: volumeSliderArea.pressed ? 0.16 : (volumeSliderArea.containsMouse ? 0.08 : 0)
+                        visible: opacity > 0
+                    }
+
+                    Rectangle {
+                        id: ripple
+                        anchors.centerIn: parent
+                        width: 0
+                        height: 0
+                        radius: width / 2
+                        color: Theme.onPrimary
+                        opacity: 0
+
+                        function start() {
+                            opacity = 0.16
+                            width = 0
+                            height = 0
+                            rippleAnimation.start()
+                        }
+
+                        SequentialAnimation {
+                            id: rippleAnimation
+                            NumberAnimation {
+                                target: ripple
+                                properties: "width,height"
+                                to: 28
+                                duration: 180
+                            }
+                            NumberAnimation {
+                                target: ripple
+                                property: "opacity"
+                                to: 0
+                                duration: 150
+                            }
+                        }
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.LeftButton
+                        onPressedChanged: {
+                            if (pressed) {
+                                ripple.start()
+                            }
+                        }
+                    }
+
+                    scale: volumeSlider.active ? 1.05 : 1.0
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Anims.durShort
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Anims.standard
+                        }
+                    }
+                }
+
+                MouseArea {
+                    id: volumeSliderArea
+                    anchors.fill: parent
+                    anchors.margins: -12
+                    enabled: defaultSink !== null
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    preventStealing: true
+
+                    onEntered: {
+                        volumeHideTimer.stop()
+                    }
+
+                    onExited: {
+                        volumeHideTimer.restart()
+                    }
+
+                    onPressed: function(mouse) {
+                        parent.dragging = true
+                        updateVolume(mouse)
+                    }
+
+                    onReleased: {
+                        parent.dragging = false
+                    }
+
+                    onPositionChanged: function(mouse) {
+                        if (pressed) {
+                            updateVolume(mouse)
+                        }
+                    }
+
+                    onClicked: function(mouse) {
+                        updateVolume(mouse)
+                    }
+
+                    onWheel: wheelEvent => {
+                        const step = Math.max(0.5, 100 / 100)
+                        adjustVolume(wheelEvent.angleDelta.y > 0 ? step : -step)
+                        wheelEvent.accepted = true
+                    }
+
+                    function updateVolume(mouse) {
+                        if (defaultSink) {
+                            const ratio = 1.0 - (mouse.y / height)
+                            const volume = Math.max(0, Math.min(1, ratio))
+                            defaultSink.audio.volume = volume
+                            if (volume > 0 && defaultSink.audio.muted) {
+                                defaultSink.audio.muted = false
+                            }
+                        }
+                    }
+                }
+            }
+
+            StyledText {
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottomMargin: Theme.spacingL
+                text: defaultSink ? Math.round(defaultSink.audio.volume * 100) + "%" : "0%"
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.surfaceText
+                font.weight: Font.Medium
+            }
+        }
     }
 }
