@@ -13,7 +13,6 @@ DankPopout {
     id: root
 
     property bool notificationHistoryVisible: false
-    property string triggerSection: "right"
     property var triggerScreen: null
 
     NotificationKeyboardController {
@@ -38,7 +37,7 @@ DankPopout {
     triggerX: 0
     triggerY: 0
     triggerWidth: 40
-    positioning: "center"
+    positioning: ""
     screen: triggerScreen
     shouldBeVisible: notificationHistoryVisible
     visible: shouldBeVisible

@@ -11,7 +11,6 @@ import qs.Widgets
 DankPopout {
     id: root
 
-    property string triggerSection: "right"
     property var triggerScreen: null
 
     function setTriggerPosition(x, y, width, section, screen) {
@@ -47,7 +46,7 @@ DankPopout {
     triggerX: Screen.width - 380 - Theme.spacingL
     triggerY: Theme.barHeight - 4 + SettingsData.dankBarSpacing
     triggerWidth: 70
-    positioning: "center"
+    positioning: ""
     screen: triggerScreen
     shouldBeVisible: false
     visible: shouldBeVisible

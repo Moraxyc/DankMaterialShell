@@ -17,7 +17,6 @@ DankPopout {
     property int currentTabIndex: 0
 
     function setTriggerPosition(x, y, width, section, screen) {
-        console.log("DankDash setTriggerPosition:", "x:", x, "y:", y, "width:", width, "section:", section, "barPos:", SettingsData.dankBarPosition)
         triggerSection = section
         triggerScreen = screen
         triggerY = y
@@ -26,6 +25,10 @@ DankPopout {
             const screenWidth = screen ? screen.width : Screen.width
             triggerX = (screenWidth - popupWidth) / 2
             triggerWidth = popupWidth
+        } else if (section === "center" && (SettingsData.dankBarPosition === SettingsData.Position.Left || SettingsData.dankBarPosition === SettingsData.Position.Right)) {
+            const screenHeight = screen ? screen.height : Screen.height
+            triggerX = (screenHeight - popupHeight) / 2
+            triggerWidth = popupHeight
         } else {
             triggerX = x
             triggerWidth = width

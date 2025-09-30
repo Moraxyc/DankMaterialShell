@@ -101,37 +101,18 @@ PanelWindow {
             } else if (SettingsData.dankBarPosition === SettingsData.Position.Right) {
                 return screenWidth - triggerY - popupWidth
             } else {
-                if (triggerSection === "center") {
-                    var centerX = triggerX + (triggerWidth / 2) - (popupWidth / 2)
-                    return Math.max(Theme.spacingM, Math.min(screenWidth - popupWidth - Theme.spacingM, centerX))
-                } else if (triggerSection === "left") {
-                    return Math.max(0, Math.min(screenWidth - popupWidth, triggerX))
-                } else if (triggerSection === "right") {
-                    var rightX = triggerX + triggerWidth - popupWidth
-                    return Math.max(0, Math.min(screenWidth - popupWidth, rightX))
-                } else if (positioning === "center") {
-                    var fallbackCenterX = triggerX + (triggerWidth / 2) - (popupWidth / 2)
-                    return Math.max(Theme.spacingM, Math.min(screenWidth - popupWidth - Theme.spacingM, fallbackCenterX))
-                } else if (positioning === "left") {
-                    return Math.max(0, Math.min(screenWidth - popupWidth, triggerX))
-                } else if (positioning === "right") {
-                    var fallbackRightX = triggerX + triggerWidth - popupWidth
-                    return Math.max(0, Math.min(screenWidth - popupWidth, fallbackRightX))
-                }
-                return Math.max(0, Math.min(screenWidth - popupWidth, triggerX))
+                const centerX = triggerX + (triggerWidth / 2) - (popupWidth / 2)
+                return Math.max(Theme.popupDistance, Math.min(screenWidth - popupWidth - Theme.popupDistance, centerX))
             }
         }
         readonly property real calculatedY: {
             if (SettingsData.dankBarPosition === SettingsData.Position.Left || SettingsData.dankBarPosition === SettingsData.Position.Right) {
-                if (triggerSection === "center") {
-                    var centerY = (screenHeight - popupHeight) / 2
-                    return Math.max(Theme.spacingM, Math.min(screenHeight - popupHeight - Theme.spacingM, centerY))
-                }
-                return Math.max(0, Math.min(screenHeight - popupHeight, triggerX))
+                const centerY = triggerX + (triggerWidth / 2) - (popupHeight / 2)
+                return Math.max(Theme.popupDistance, Math.min(screenHeight - popupHeight - Theme.popupDistance, centerY))
             } else if (SettingsData.dankBarPosition === SettingsData.Position.Bottom) {
-                return Math.max(Theme.spacingM, Math.min(screenHeight - popupHeight - Theme.spacingM, screenHeight - triggerY - popupHeight + Theme.popupDistance))
+                return Math.max(Theme.popupDistance, Math.min(screenHeight - popupHeight - Theme.popupDistance, screenHeight - triggerY - popupHeight + Theme.popupDistance))
             } else {
-                return Math.max(0, Math.min(screenHeight - popupHeight - Theme.spacingM, triggerY + Theme.popupDistance))
+                return Math.max(Theme.popupDistance, Math.min(screenHeight - popupHeight - Theme.popupDistance, triggerY + Theme.popupDistance))
             }
         }
         

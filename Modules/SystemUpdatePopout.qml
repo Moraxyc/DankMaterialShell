@@ -12,7 +12,6 @@ DankPopout {
     id: systemUpdatePopout
 
     property var parentWidget: null
-    property string triggerSection: "right"
     property var triggerScreen: null
 
     function setTriggerPosition(x, y, width, section, screen) {
@@ -28,7 +27,7 @@ DankPopout {
     triggerX: Screen.width - 600 - Theme.spacingL
     triggerY: Math.max(26 + SettingsData.dankBarInnerPadding + 4, Theme.barHeight - 4 - (8 - SettingsData.dankBarInnerPadding)) + SettingsData.dankBarSpacing + SettingsData.dankBarBottomGap - 2
     triggerWidth: 55
-    positioning: "center"
+    positioning: ""
     screen: triggerScreen
     visible: shouldBeVisible
     shouldBeVisible: false

@@ -67,6 +67,7 @@ DankPopout {
     triggerX: (triggerScreen?.width ?? 1920) - 600 - Theme.spacingL
     triggerY: Theme.barHeight - 4 + SettingsData.dankBarSpacing
     triggerWidth: 80
+    positioning: ""
     screen: triggerScreen
     shouldBeVisible: false
     visible: shouldBeVisible

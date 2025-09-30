@@ -12,7 +12,6 @@ import qs.Widgets
 DankPopout {
     id: appDrawerPopout
 
-    property string triggerSection: "left"
     property var triggerScreen: null
 
     // Setting to Exclusive, so virtual keyboards can send input to app drawer
