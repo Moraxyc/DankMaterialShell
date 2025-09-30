@@ -278,7 +278,7 @@ Rectangle {
 
             PanelWindow {
                 id: menuWindow
-                visible: menuRoot.showMenu && menuRoot.trayItem?.hasMenu
+                visible: menuRoot.showMenu && (menuRoot.trayItem?.hasMenu ?? false)
                 WlrLayershell.layer: WlrLayershell.Overlay
                 WlrLayershell.exclusiveZone: -1
                 WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
