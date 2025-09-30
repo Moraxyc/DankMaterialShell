@@ -270,6 +270,7 @@ Singleton {
         if (enableTransition) {
             screenTransition()
         }
+
         if (themeName === dynamic) {
             currentTheme = dynamic
             currentThemeCategory = dynamic
@@ -281,7 +282,6 @@ Singleton {
             }
         } else {
             currentTheme = themeName
-            // Determine category based on theme name
             if (StockThemes.isCatppuccinVariant(themeName)) {
                 currentThemeCategory = "catppuccin"
             } else {
@@ -295,7 +295,6 @@ Singleton {
     }
 
     function setLightMode(light, savePrefs = true) {
-        screenTransition()
         isLightMode = light
         if (savePrefs && typeof SessionData !== "undefined")
             SessionData.setLightMode(isLightMode)
@@ -308,7 +307,6 @@ Singleton {
     }
 
     function forceGenerateSystemThemes() {
-        screenTransition()
         if (!matugenAvailable) {
             return
         }
@@ -332,6 +330,7 @@ Singleton {
     }
 
     function switchThemeCategory(category, defaultTheme) {
+        screenTransition()
         currentThemeCategory = category
         switchTheme(defaultTheme, true, false)
     }
@@ -357,7 +356,6 @@ Singleton {
     }
 
     function loadCustomTheme(themeData) {
-        screenTransition()
         if (themeData.dark || themeData.light) {
             const colorMode = (typeof SessionData !== "undefined" && SessionData.isLightMode) ? "light" : "dark"
             const selectedTheme = themeData[colorMode] || themeData.dark || themeData.light
@@ -641,6 +639,7 @@ Singleton {
         qtApplier.running = true
     }
 
+    function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a); }
 
     Process {
         id: matugenCheck
@@ -835,16 +834,19 @@ Singleton {
         target: "theme"
 
         function toggle(): string {
+            root.screenTransition()
             root.toggleLightMode()
             return root.isLightMode ? "light" : "dark"
         }
 
         function light(): string {
+            root.screenTransition()
             root.setLightMode(true)
             return "light"
         }
 
         function dark(): string {
+            root.screenTransition()
             root.setLightMode(false)
             return "dark"
         }

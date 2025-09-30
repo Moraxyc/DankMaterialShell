@@ -318,12 +318,13 @@ Rectangle {
                                 const screenX = root.parentScreen ? root.parentScreen.x : 0;
                                 const screenY = root.parentScreen ? root.parentScreen.y : 0;
                                 const relativeY = globalPos.y - screenY;
-                                const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - 200);
-                                tooltipLoader.item.show(delegateItem.tooltipText, screenX + tooltipX, relativeY, root.parentScreen, true);
+                                const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - Theme.barHeight - SettingsData.dankBarSpacing - Theme.spacingXS);
+                                const isLeft = root.axis?.edge === "left";
+                                tooltipLoader.item.show(delegateItem.tooltipText, screenX + tooltipX, relativeY, root.parentScreen, isLeft, !isLeft);
                             } else {
                                 const globalPos = delegateItem.mapToGlobal(delegateItem.width / 2, delegateItem.height);
                                 const tooltipY = Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS;
-                                tooltipLoader.item.show(delegateItem.tooltipText, globalPos.x, tooltipY, root.parentScreen, false);
+                                tooltipLoader.item.show(delegateItem.tooltipText, globalPos.x, tooltipY, root.parentScreen, false, false);
                             }
                         }
                     }
@@ -508,12 +509,13 @@ Rectangle {
                                 const screenX = root.parentScreen ? root.parentScreen.x : 0;
                                 const screenY = root.parentScreen ? root.parentScreen.y : 0;
                                 const relativeY = globalPos.y - screenY;
-                                const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - 200);
-                                tooltipLoader.item.show(delegateItem.tooltipText, screenX + tooltipX, relativeY, root.parentScreen, true);
+                                const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - Theme.barHeight - SettingsData.dankBarSpacing - Theme.spacingXS);
+                                const isLeft = root.axis?.edge === "left";
+                                tooltipLoader.item.show(delegateItem.tooltipText, screenX + tooltipX, relativeY, root.parentScreen, isLeft, !isLeft);
                             } else {
                                 const globalPos = delegateItem.mapToGlobal(delegateItem.width / 2, delegateItem.height);
                                 const tooltipY = Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS;
-                                tooltipLoader.item.show(delegateItem.tooltipText, globalPos.x, tooltipY, root.parentScreen, false);
+                                tooltipLoader.item.show(delegateItem.tooltipText, globalPos.x, tooltipY, root.parentScreen, false, false);
                             }
                         }
                     }

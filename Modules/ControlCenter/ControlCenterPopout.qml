@@ -100,7 +100,7 @@ DankPopout {
             property alias bluetoothCodecSelector: bluetoothCodecSelector
 
             color: {
-                const transparency = Theme.popupTransparency || 0.92
+                const transparency = Theme.popupTransparency
                 const surface = Theme.surfaceContainer || Qt.rgba(0.1, 0.1, 0.1, 1)
                 return Qt.rgba(surface.r, surface.g, surface.b, transparency)
             }

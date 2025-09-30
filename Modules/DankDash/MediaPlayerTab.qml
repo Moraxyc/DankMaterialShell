@@ -797,180 +797,210 @@ Item {
                             spacing: Theme.spacingM
                             height: parent.height
 
-                        Rectangle {
-                            width: 40
-                            height: 40
-                            radius: 20
-                            color: shuffleArea.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.12) : "transparent"
+                        Item {
+                            width: 50
+                            height: 50
                             anchors.verticalCenter: parent.verticalCenter
                             visible: activePlayer && activePlayer.shuffleSupported
 
-                            DankIcon {
+                            Rectangle {
+                                width: 40
+                                height: 40
+                                radius: 20
                                 anchors.centerIn: parent
-                                name: "shuffle"
-                                size: 20
-                                color: activePlayer && activePlayer.shuffle ? Theme.primary : Theme.surfaceText
-                            }
+                                color: shuffleArea.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.12) : "transparent"
 
-                            MouseArea {
-                                id: shuffleArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (activePlayer && activePlayer.canControl && activePlayer.shuffleSupported) {
-                                        activePlayer.shuffle = !activePlayer.shuffle
+                                DankIcon {
+                                    anchors.centerIn: parent
+                                    name: "shuffle"
+                                    size: 20
+                                    color: activePlayer && activePlayer.shuffle ? Theme.primary : Theme.surfaceText
+                                }
+
+                                MouseArea {
+                                    id: shuffleArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (activePlayer && activePlayer.canControl && activePlayer.shuffleSupported) {
+                                            activePlayer.shuffle = !activePlayer.shuffle
+                                        }
                                     }
                                 }
-                            }
 
-                            Behavior on color {
-                                ColorAnimation { 
-                                    duration: Anims.durShort
-                                    easing.type: Easing.BezierSpline
-                                    easing.bezierCurve: Anims.standard
-                                }
-                            }
-                        }
-
-                        Rectangle {
-                            width: 40
-                            height: 40
-                            radius: 20
-                            color: prevBtnArea.containsMouse ? Theme.surfaceContainerHigh : "transparent"
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            DankIcon {
-                                anchors.centerIn: parent
-                                name: "skip_previous"
-                                size: 24
-                                color: Theme.surfaceText
-                            }
-
-                            MouseArea {
-                                id: prevBtnArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (!activePlayer) {
-                                        return
-                                    }
-
-                                    if (activePlayer.position > 8 && activePlayer.canSeek) {
-                                        activePlayer.position = 0
-                                    } else {
-                                        activePlayer.previous()
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Anims.durShort
+                                        easing.type: Easing.BezierSpline
+                                        easing.bezierCurve: Anims.standard
                                     }
                                 }
                             }
                         }
 
-                        Rectangle {
+                        Item {
                             width: 50
                             height: 50
-                            radius: 25
-                            color: Theme.primary
                             anchors.verticalCenter: parent.verticalCenter
 
-                            DankIcon {
+                            Rectangle {
+                                width: 40
+                                height: 40
+                                radius: 20
                                 anchors.centerIn: parent
-                                name: activePlayer && activePlayer.playbackState === MprisPlaybackState.Playing ? "pause" : "play_arrow"
-                                size: 28
-                                color: Theme.background
-                                weight: 500
-                            }
+                                color: prevBtnArea.containsMouse ? Theme.surfaceContainerHigh : "transparent"
 
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: activePlayer && activePlayer.togglePlaying()
-                            }
-
-                            layer.enabled: true
-                            layer.effect: MultiEffect {
-                                shadowEnabled: true
-                                shadowHorizontalOffset: 0
-                                shadowVerticalOffset: 6
-                                shadowBlur: 1.0
-                                shadowColor: Qt.rgba(0, 0, 0, 0.3)
-                                shadowOpacity: 0.3
-                            }
-                        }
-
-                        Rectangle {
-                            width: 40
-                            height: 40
-                            radius: 20
-                            color: nextBtnArea.containsMouse ? Theme.surfaceContainerHigh : "transparent"
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            DankIcon {
-                                anchors.centerIn: parent
-                                name: "skip_next"
-                                size: 24
-                                color: Theme.surfaceText
-                            }
-
-                            MouseArea {
-                                id: nextBtnArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: activePlayer && activePlayer.next()
-                            }
-                        }
-
-                        Rectangle {
-                            width: 40
-                            height: 40
-                            radius: 20
-                            color: repeatArea.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.12) : "transparent"
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: activePlayer && activePlayer.loopSupported
-
-                            DankIcon {
-                                anchors.centerIn: parent
-                                name: {
-                                    if (!activePlayer) return "repeat"
-                                    switch(activePlayer.loopState) {
-                                        case MprisLoopState.Track: return "repeat_one"
-                                        case MprisLoopState.Playlist: return "repeat"
-                                        default: return "repeat"
-                                    }
+                                DankIcon {
+                                    anchors.centerIn: parent
+                                    name: "skip_previous"
+                                    size: 24
+                                    color: Theme.surfaceText
                                 }
-                                size: 20
-                                color: activePlayer && activePlayer.loopState !== MprisLoopState.None ? Theme.primary : Theme.surfaceText
-                            }
 
-                            MouseArea {
-                                id: repeatArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (activePlayer && activePlayer.canControl && activePlayer.loopSupported) {
-                                        switch(activePlayer.loopState) {
-                                            case MprisLoopState.None:
-                                                activePlayer.loopState = MprisLoopState.Playlist
-                                                break
-                                            case MprisLoopState.Playlist:
-                                                activePlayer.loopState = MprisLoopState.Track
-                                                break
-                                            case MprisLoopState.Track:
-                                                activePlayer.loopState = MprisLoopState.None
-                                                break
+                                MouseArea {
+                                    id: prevBtnArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (!activePlayer) {
+                                            return
+                                        }
+
+                                        if (activePlayer.position > 8 && activePlayer.canSeek) {
+                                            activePlayer.position = 0
+                                        } else {
+                                            activePlayer.previous()
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            Behavior on color {
-                                ColorAnimation { 
-                                    duration: Anims.durShort
-                                    easing.type: Easing.BezierSpline
-                                    easing.bezierCurve: Anims.standard
+                        Item {
+                            width: 50
+                            height: 50
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Rectangle {
+                                width: 50
+                                height: 50
+                                radius: 25
+                                anchors.centerIn: parent
+                                color: Theme.primary
+
+                                DankIcon {
+                                    anchors.centerIn: parent
+                                    name: activePlayer && activePlayer.playbackState === MprisPlaybackState.Playing ? "pause" : "play_arrow"
+                                    size: 28
+                                    color: Theme.background
+                                    weight: 500
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: activePlayer && activePlayer.togglePlaying()
+                                }
+
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    shadowEnabled: true
+                                    shadowHorizontalOffset: 0
+                                    shadowVerticalOffset: 0
+                                    shadowBlur: 1.0
+                                    shadowColor: Qt.rgba(0, 0, 0, 0.3)
+                                    shadowOpacity: 0.3
+                                }
+                            }
+                        }
+
+                        Item {
+                            width: 50
+                            height: 50
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Rectangle {
+                                width: 40
+                                height: 40
+                                radius: 20
+                                anchors.centerIn: parent
+                                color: nextBtnArea.containsMouse ? Theme.surfaceContainerHigh : "transparent"
+
+                                DankIcon {
+                                    anchors.centerIn: parent
+                                    name: "skip_next"
+                                    size: 24
+                                    color: Theme.surfaceText
+                                }
+
+                                MouseArea {
+                                    id: nextBtnArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: activePlayer && activePlayer.next()
+                                }
+                            }
+                        }
+
+                        Item {
+                            width: 50
+                            height: 50
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: activePlayer && activePlayer.loopSupported
+
+                            Rectangle {
+                                width: 40
+                                height: 40
+                                radius: 20
+                                anchors.centerIn: parent
+                                color: repeatArea.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.12) : "transparent"
+
+                                DankIcon {
+                                    anchors.centerIn: parent
+                                    name: {
+                                        if (!activePlayer) return "repeat"
+                                        switch(activePlayer.loopState) {
+                                            case MprisLoopState.Track: return "repeat_one"
+                                            case MprisLoopState.Playlist: return "repeat"
+                                            default: return "repeat"
+                                        }
+                                    }
+                                    size: 20
+                                    color: activePlayer && activePlayer.loopState !== MprisLoopState.None ? Theme.primary : Theme.surfaceText
+                                }
+
+                                MouseArea {
+                                    id: repeatArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (activePlayer && activePlayer.canControl && activePlayer.loopSupported) {
+                                            switch(activePlayer.loopState) {
+                                                case MprisLoopState.None:
+                                                    activePlayer.loopState = MprisLoopState.Playlist
+                                                    break
+                                                case MprisLoopState.Playlist:
+                                                    activePlayer.loopState = MprisLoopState.Track
+                                                    break
+                                                case MprisLoopState.Track:
+                                                    activePlayer.loopState = MprisLoopState.None
+                                                    break
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Anims.durShort
+                                        easing.type: Easing.BezierSpline
+                                        easing.bezierCurve: Anims.standard
+                                    }
                                 }
                             }
                         }
@@ -1010,8 +1040,27 @@ Item {
                 onClicked: {
                     parent.playersExpanded = !parent.playersExpanded
                 }
+                onEntered: {
+                    playerTooltipLoader.active = true
+                    if (playerTooltipLoader.item) {
+                        const p = playerSelectorButton.mapToItem(null, playerSelectorButton.width / 2, 0)
+                        playerTooltipLoader.item.show("Media Player", p.x, p.y - 40, null)
+                    }
+                }
+                onExited: {
+                    if (playerTooltipLoader.item) {
+                        playerTooltipLoader.item.hide()
+                    }
+                    playerTooltipLoader.active = false
+                }
             }
 
+        }
+
+        Loader {
+            id: playerTooltipLoader
+            active: false
+            sourceComponent: DankTooltip {}
         }
 
         Rectangle {
@@ -1107,8 +1156,6 @@ Item {
                     property bool dragging: false
                     property bool containsMouse: volumeSliderArea.containsMouse
                     property bool active: volumeSliderArea.containsMouse || volumeSliderArea.pressed || dragging
-
-                    function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
 
                     Rectangle {
                         id: sliderTrack
@@ -1304,8 +1351,27 @@ Item {
                 onClicked: {
                     parent.devicesExpanded = !parent.devicesExpanded
                 }
+                onEntered: {
+                    audioDevicesTooltipLoader.active = true
+                    if (audioDevicesTooltipLoader.item) {
+                        const p = audioDevicesButton.mapToItem(null, audioDevicesButton.width / 2, 0)
+                        audioDevicesTooltipLoader.item.show("Output Device", p.x, p.y - 40, null)
+                    }
+                }
+                onExited: {
+                    if (audioDevicesTooltipLoader.item) {
+                        audioDevicesTooltipLoader.item.hide()
+                    }
+                    audioDevicesTooltipLoader.active = false
+                }
             }
 
+        }
+
+        Loader {
+            id: audioDevicesTooltipLoader
+            active: false
+            sourceComponent: DankTooltip {}
         }
 
     }

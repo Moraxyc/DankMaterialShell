@@ -985,7 +985,8 @@ Item {
                         text: "Light Mode"
                         description: "Use light theme instead of dark theme"
                         checked: SessionData.isLightMode
-                        onToggled: checked => {
+                        onToggleCompleted: checked => {
+                                       Theme.screenTransition()
                                        Theme.setLightMode(checked)
                                    }
                     }

@@ -14,6 +14,7 @@ Column {
     property var model: null
     property var expandedWidgetData: null
     property var bluetoothCodecSelector: null
+    property bool darkModeTransitionPending: false
 
     signal expandClicked(var widgetData, int globalIndex)
     signal removeWidget(int index)
@@ -532,7 +533,13 @@ Column {
                 }
             }
 
-            iconRotation: widgetData.id === "darkMode" && SessionData.isLightMode ? 180 : 0
+            iconRotation: {
+                if (widgetData.id !== "darkMode") return 0
+                if (darkModeTransitionPending) {
+                    return SessionData.isLightMode ? 0 : 180
+                }
+                return SessionData.isLightMode ? 180 : 0
+            }
 
             isActive: {
                 switch (widgetData.id || "") {
@@ -551,6 +558,14 @@ Column {
 
 enabled: !root.editMode
 
+            onIconRotationCompleted: {
+                if (root.darkModeTransitionPending && widgetData.id === "darkMode") {
+                    root.darkModeTransitionPending = false
+                    Theme.screenTransition()
+                    Theme.toggleLightMode()
+                }
+            }
+
             onClicked: {
                 if (root.editMode)
                     return
@@ -563,7 +578,7 @@ enabled: !root.editMode
                 }
                 case "darkMode":
                 {
-                    Theme.toggleLightMode()
+                    root.darkModeTransitionPending = true
                     break
                 }
                 case "doNotDisturb":
@@ -604,7 +619,13 @@ enabled: !root.editMode
                 }
             }
 
-            iconRotation: widgetData.id === "darkMode" && SessionData.isLightMode ? 180 : 0
+            iconRotation: {
+                if (widgetData.id !== "darkMode") return 0
+                if (darkModeTransitionPending) {
+                    return SessionData.isLightMode ? 0 : 180
+                }
+                return SessionData.isLightMode ? 180 : 0
+            }
 
             isActive: {
                 switch (widgetData.id || "") {
@@ -623,6 +644,14 @@ enabled: !root.editMode
 
 enabled: !root.editMode
 
+            onIconRotationCompleted: {
+                if (root.darkModeTransitionPending && widgetData.id === "darkMode") {
+                    root.darkModeTransitionPending = false
+                    Theme.screenTransition()
+                    Theme.toggleLightMode()
+                }
+            }
+
             onClicked: {
                 if (root.editMode)
                     return
@@ -635,7 +664,7 @@ enabled: !root.editMode
                 }
                 case "darkMode":
                 {
-                    Theme.toggleLightMode()
+                    root.darkModeTransitionPending = true
                     break
                 }
                 case "doNotDisturb":

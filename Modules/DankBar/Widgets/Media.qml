@@ -146,7 +146,7 @@ Rectangle {
                         const screenX = root.parentScreen ? root.parentScreen.x : 0
                         const screenY = root.parentScreen ? root.parentScreen.y : 0
                         const relativeY = globalPos.y - screenY
-                        const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - 400)
+                        const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (root.parentScreen.width - Theme.barHeight - SettingsData.dankBarSpacing - Theme.spacingXS)
 
                         let identity = activePlayer.identity || ""
                         let isWebMedia = identity.toLowerCase().includes("firefox") || identity.toLowerCase().includes("chrome") || identity.toLowerCase().includes("chromium")
@@ -159,7 +159,8 @@ Rectangle {
                         }
                         let tooltipText = subtitle.length > 0 ? title + " • " + subtitle : title
 
-                        tooltipLoader.item.show(tooltipText, screenX + tooltipX, relativeY, root.parentScreen, true)
+                        const isLeft = root.axis?.edge === "left"
+                        tooltipLoader.item.show(tooltipText, screenX + tooltipX, relativeY, root.parentScreen, isLeft, !isLeft)
                     }
                 }
                 onExited: {
