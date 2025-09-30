@@ -77,7 +77,8 @@ PanelWindow {
     implicitWidth: 400
     implicitHeight: 122
     onScreenYChanged: {
-        if (SettingsData.dankBarPosition === SettingsData.Position.Bottom) {
+        const isBottom = SettingsData.notificationPopupPosition === SettingsData.Position.Bottom || SettingsData.notificationPopupPosition === SettingsData.Position.Right
+        if (isBottom) {
             margins.bottom = Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4 + screenY
         } else {
             margins.top = Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4 + screenY
@@ -115,15 +116,23 @@ PanelWindow {
     }
 
     anchors {
-        top: SettingsData.dankBarPosition === SettingsData.Position.Top
-        bottom: SettingsData.dankBarPosition === SettingsData.Position.Bottom
-        right: true
+        top: SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Left
+        bottom: SettingsData.notificationPopupPosition === SettingsData.Position.Bottom || SettingsData.notificationPopupPosition === SettingsData.Position.Right
+        left: SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
+        right: SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Right
     }
 
     margins {
-        top: SettingsData.dankBarPosition === SettingsData.Position.Bottom ? 0 : (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4)
-        bottom: SettingsData.dankBarPosition === SettingsData.Position.Bottom ? (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4) : 0
-        right: 12
+        top: {
+            const isTop = SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Left
+            return isTop ? (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4) : 0
+        }
+        bottom: {
+            const isBottom = SettingsData.notificationPopupPosition === SettingsData.Position.Bottom || SettingsData.notificationPopupPosition === SettingsData.Position.Right
+            return isBottom ? (Theme.barHeight - 4 + SettingsData.dankBarSpacing + 4) : 0
+        }
+        left: SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom ? 12 : 0
+        right: SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Right ? 12 : 0
     }
 
     Item {
@@ -463,7 +472,10 @@ PanelWindow {
         transform: Translate {
             id: tx
 
-            x: Anims.slidePx
+            x: {
+                const isLeft = SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
+                return isLeft ? -Anims.slidePx : Anims.slidePx
+            }
         }
     }
 
@@ -472,7 +484,10 @@ PanelWindow {
 
         target: tx
         property: "x"
-        from: Anims.slidePx
+        from: {
+            const isLeft = SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
+            return isLeft ? -Anims.slidePx : Anims.slidePx
+        }
         to: 0
         duration: Anims.durMed
         easing.type: Easing.BezierSpline
@@ -493,7 +508,10 @@ PanelWindow {
             target: tx
             property: "x"
             from: 0
-            to: Anims.slidePx
+            to: {
+                const isLeft = SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
+                return isLeft ? -Anims.slidePx : Anims.slidePx
+            }
             duration: Anims.durShort
             easing.type: Easing.BezierSpline
             easing.bezierCurve: Anims.emphasizedAccel

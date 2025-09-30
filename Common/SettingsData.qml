@@ -149,6 +149,7 @@ Singleton {
     property int notificationTimeoutLow: 5000
     property int notificationTimeoutNormal: 5000
     property int notificationTimeoutCritical: 0
+    property int notificationPopupPosition: SettingsData.Position.Top
     property var screenPreferences: ({})
     readonly property string defaultFontFamily: "Inter Variable"
     readonly property string defaultMonoFontFamily: "Fira Code"
@@ -336,6 +337,7 @@ Singleton {
                 notificationTimeoutLow = settings.notificationTimeoutLow !== undefined ? settings.notificationTimeoutLow : 5000
                 notificationTimeoutNormal = settings.notificationTimeoutNormal !== undefined ? settings.notificationTimeoutNormal : 5000
                 notificationTimeoutCritical = settings.notificationTimeoutCritical !== undefined ? settings.notificationTimeoutCritical : 0
+                notificationPopupPosition = settings.notificationPopupPosition !== undefined ? settings.notificationPopupPosition : SettingsData.Position.Top
                 dankBarSpacing = settings.dankBarSpacing !== undefined ? settings.dankBarSpacing : (settings.topBarSpacing !== undefined ? settings.topBarSpacing : 4)
                 dankBarBottomGap = settings.dankBarBottomGap !== undefined ? settings.dankBarBottomGap : (settings.topBarBottomGap !== undefined ? settings.topBarBottomGap : 0)
                 dankBarInnerPadding = settings.dankBarInnerPadding !== undefined ? settings.dankBarInnerPadding : (settings.topBarInnerPadding !== undefined ? settings.topBarInnerPadding : 4)
@@ -465,6 +467,7 @@ Singleton {
                                                 "notificationTimeoutLow": notificationTimeoutLow,
                                                 "notificationTimeoutNormal": notificationTimeoutNormal,
                                                 "notificationTimeoutCritical": notificationTimeoutCritical,
+                                                "notificationPopupPosition": notificationPopupPosition,
                                                 "screenPreferences": screenPreferences
                                             }, null, 2))
     }
@@ -1046,6 +1049,56 @@ Singleton {
     function setNotificationTimeoutCritical(timeout) {
         notificationTimeoutCritical = timeout
         saveSettings()
+    }
+
+    function setNotificationPopupPosition(position) {
+        notificationPopupPosition = position
+        saveSettings()
+    }
+
+    function sendTestNotifications() {
+        sendTestNotification(0)
+        testNotifTimer1.start()
+        testNotifTimer2.start()
+    }
+
+    function sendTestNotification(index) {
+        const notifications = [
+            ["Notification Position Test", "DMS test notification 1 of 3 ~ Hi there!", "dialog-information"],
+            ["Second Test", "DMS Notification 2 of 3 ~ Check it out!", "emblem-default"],
+            ["Third Test", "DMS notification 3 of 3 ~ Enjoy!", "emblem-favorite"]
+        ]
+
+        if (index < 0 || index >= notifications.length) {
+            return
+        }
+
+        const notif = notifications[index]
+        testNotificationProcess.command = ["notify-send", "-a", "DMS", "-i", notif[2], notif[0], notif[1]]
+        testNotificationProcess.running = true
+    }
+
+    property Process testNotificationProcess
+
+    testNotificationProcess: Process {
+        command: []
+        running: false
+    }
+
+    property Timer testNotifTimer1
+
+    testNotifTimer1: Timer {
+        interval: 400
+        repeat: false
+        onTriggered: sendTestNotification(1)
+    }
+
+    property Timer testNotifTimer2
+
+    testNotifTimer2: Timer {
+        interval: 800
+        repeat: false
+        onTriggered: sendTestNotification(2)
     }
 
     function setDankBarSpacing(spacing) {
