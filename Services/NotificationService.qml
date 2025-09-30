@@ -226,6 +226,7 @@ Singleton {
             }
 
             const shouldShowPopup = !root.popupsDisabled && !SessionData.doNotDisturb
+            const isTransient = notif.transient
             const wrapper = notifComponent.createObject(root, {
                                                             "popup": shouldShowPopup,
                                                             "notification": notif
@@ -233,8 +234,10 @@ Singleton {
 
             if (wrapper) {
                 root.allWrappers.push(wrapper)
-                root.notifications.push(wrapper)
-                _trimStored()
+                if (!isTransient) {
+                    root.notifications.push(wrapper)
+                    _trimStored()
+                }
 
                 Qt.callLater(() => {
                                  _initWrapperPersistence(wrapper)

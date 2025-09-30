@@ -1074,7 +1074,7 @@ Singleton {
         }
 
         const notif = notifications[index]
-        testNotificationProcess.command = ["notify-send", "-a", "DMS", "-i", notif[2], notif[0], notif[1]]
+        testNotificationProcess.command = ["notify-send", "-h", "int:transient:1", "-a", "DMS", "-i", notif[2], notif[0], notif[1]]
         testNotificationProcess.running = true
     }
 
