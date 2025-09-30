@@ -107,12 +107,12 @@ PanelWindow {
         }
     }
 
-    anchors {
-        top: SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Left
-        bottom: SettingsData.notificationPopupPosition === SettingsData.Position.Bottom || SettingsData.notificationPopupPosition === SettingsData.Position.Right
-        left: SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
-        right: SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Right
-    }
+    property bool isTopCenter: SettingsData.notificationPopupPosition === -1
+
+    anchors.top: isTopCenter || SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Left
+    anchors.bottom: SettingsData.notificationPopupPosition === SettingsData.Position.Bottom || SettingsData.notificationPopupPosition === SettingsData.Position.Right
+    anchors.left: SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
+    anchors.right: SettingsData.notificationPopupPosition === SettingsData.Position.Top || SettingsData.notificationPopupPosition === SettingsData.Position.Right
 
     margins {
         top: getTopMargin()
@@ -124,7 +124,7 @@ PanelWindow {
     function getTopMargin() {
         const popupPos = SettingsData.notificationPopupPosition
         const barPos = SettingsData.dankBarPosition
-        const isTop = popupPos === SettingsData.Position.Top || popupPos === SettingsData.Position.Left
+        const isTop = isTopCenter || popupPos === SettingsData.Position.Top || popupPos === SettingsData.Position.Left
 
         if (!isTop) return 0
 
@@ -158,6 +158,10 @@ PanelWindow {
     }
 
     function getLeftMargin() {
+        if (isTopCenter) {
+            return (screen.width - implicitWidth) / 2
+        }
+
         const popupPos = SettingsData.notificationPopupPosition
         const barPos = SettingsData.dankBarPosition
         const isLeft = popupPos === SettingsData.Position.Left || popupPos === SettingsData.Position.Bottom
@@ -175,6 +179,8 @@ PanelWindow {
     }
 
     function getRightMargin() {
+        if (isTopCenter) return 0
+
         const popupPos = SettingsData.notificationPopupPosition
         const barPos = SettingsData.dankBarPosition
         const isRight = popupPos === SettingsData.Position.Top || popupPos === SettingsData.Position.Right
@@ -529,9 +535,11 @@ PanelWindow {
             id: tx
 
             x: {
+                if (isTopCenter) return 0
                 const isLeft = SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
                 return isLeft ? -Anims.slidePx : Anims.slidePx
             }
+            y: isTopCenter ? -Anims.slidePx : 0
         }
     }
 
@@ -539,18 +547,23 @@ PanelWindow {
         id: enterX
 
         target: tx
-        property: "x"
+        property: isTopCenter ? "y" : "x"
         from: {
+            if (isTopCenter) return -Anims.slidePx
             const isLeft = SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
             return isLeft ? -Anims.slidePx : Anims.slidePx
         }
         to: 0
         duration: Anims.durMed
         easing.type: Easing.BezierSpline
-        easing.bezierCurve: Anims.emphasizedDecel
+        easing.bezierCurve: isTopCenter ? Anims.standardDecel : Anims.emphasizedDecel
         onStopped: {
-            if (!win.exiting && !win._isDestroying && Math.abs(tx.x) < 0.5) {
-                win.entered()
+            if (!win.exiting && !win._isDestroying) {
+                if (isTopCenter) {
+                    if (Math.abs(tx.y) < 0.5) win.entered()
+                } else {
+                    if (Math.abs(tx.x) < 0.5) win.entered()
+                }
             }
         }
     }
@@ -562,9 +575,10 @@ PanelWindow {
 
         PropertyAnimation {
             target: tx
-            property: "x"
+            property: isTopCenter ? "y" : "x"
             from: 0
             to: {
+                if (isTopCenter) return -Anims.slidePx
                 const isLeft = SettingsData.notificationPopupPosition === SettingsData.Position.Left || SettingsData.notificationPopupPosition === SettingsData.Position.Bottom
                 return isLeft ? -Anims.slidePx : Anims.slidePx
             }

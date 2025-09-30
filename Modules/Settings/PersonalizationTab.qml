@@ -1373,6 +1373,9 @@ Item {
                         text: "Popup Position"
                         description: "Choose where notification popups appear on screen"
                         currentValue: {
+                            if (SettingsData.notificationPopupPosition === -1) {
+                                return "Top Center"
+                            }
                             switch (SettingsData.notificationPopupPosition) {
                             case SettingsData.Position.Top:
                                 return "Top Right"
@@ -1386,7 +1389,7 @@ Item {
                                 return "Top Right"
                             }
                         }
-                        options: ["Top Right", "Top Left", "Bottom Right", "Bottom Left"]
+                        options: ["Top Right", "Top Left", "Top Center", "Bottom Right", "Bottom Left"]
                         onValueChanged: value => {
                             switch (value) {
                             case "Top Right":
@@ -1394,6 +1397,9 @@ Item {
                                 break
                             case "Top Left":
                                 SettingsData.setNotificationPopupPosition(SettingsData.Position.Left)
+                                break
+                            case "Top Center":
+                                SettingsData.setNotificationPopupPosition(-1)
                                 break
                             case "Bottom Right":
                                 SettingsData.setNotificationPopupPosition(SettingsData.Position.Right)

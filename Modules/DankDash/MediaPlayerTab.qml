@@ -338,38 +338,39 @@ Item {
             }
         }
 
-        Rectangle {
+        Popup {
             id: audioDevicesDropdown
             width: 280
             height: audioDevicesButton.devicesExpanded ? Math.max(200, Math.min(280, audioDevicesDropdown.availableDevices.length * 50 + 100)) : 0
-            x: parent.width + Theme.spacingS
-            y: audioDevicesButton.y - 50  
+            x: root.width + Theme.spacingS
+            y: audioDevicesButton.y - 50
             visible: audioDevicesButton.devicesExpanded
-            clip: true
-            z: 150  
-            
+            closePolicy: Popup.NoAutoClose
+            modal: false
+            dim: false
+            padding: 0
+
             property var availableDevices: Pipewire.nodes.values.filter(node => {
                 return node.audio && node.isSink && !node.isStream
             })
-            
-            color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.98)
-            border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.6)
-            border.width: 2
-            radius: Theme.cornerRadius * 2
-            
-            opacity: audioDevicesButton.devicesExpanded ? 1 : 0
-            
-            // Drop shadow effect
-            layer.enabled: true
-            layer.effect: MultiEffect {
-                shadowEnabled: true
-                shadowHorizontalOffset: 0
-                shadowVerticalOffset: 8
-                shadowBlur: 1.0
-                shadowColor: Qt.rgba(0, 0, 0, 0.4)
-                shadowOpacity: 0.7
+
+            background: Rectangle {
+                color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.98)
+                border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.6)
+                border.width: 2
+                radius: Theme.cornerRadius * 2
+
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowHorizontalOffset: 0
+                    shadowVerticalOffset: 8
+                    shadowBlur: 1.0
+                    shadowColor: Qt.rgba(0, 0, 0, 0.4)
+                    shadowOpacity: 0.7
+                }
             }
-            
+
             Behavior on height {
                 NumberAnimation {
                     duration: Anims.durShort
@@ -378,8 +379,22 @@ Item {
                 }
             }
 
-            Behavior on opacity {
+            enter: Transition {
                 NumberAnimation {
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: Anims.durShort
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Anims.standard
+                }
+            }
+
+            exit: Transition {
+                NumberAnimation {
+                    property: "opacity"
+                    from: 1
+                    to: 0
                     duration: Anims.durShort
                     easing.type: Easing.BezierSpline
                     easing.bezierCurve: Anims.standard
@@ -485,43 +500,59 @@ Item {
             }
         }
 
-        Rectangle {
+        Popup {
             id: playerSelectorDropdown
             width: 240
             height: playerSelectorButton.playersExpanded ? Math.max(180, Math.min(240, (root.allPlayers?.length || 0) * 50 + 80)) : 0
-            x: parent.width + Theme.spacingS
+            x: root.width + Theme.spacingS
             y: playerSelectorButton.y - 50
             visible: playerSelectorButton.playersExpanded
-            clip: true
-            z: 150
+            closePolicy: Popup.NoAutoClose
+            modal: false
+            dim: false
+            padding: 0
 
-            color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.98)
-            border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.6)
-            border.width: 2
-            radius: Theme.cornerRadius * 2
+            background: Rectangle {
+                color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.98)
+                border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.6)
+                border.width: 2
+                radius: Theme.cornerRadius * 2
 
-            opacity: playerSelectorButton.playersExpanded ? 1 : 0
-
-            layer.enabled: true
-            layer.effect: MultiEffect {
-                shadowEnabled: true
-                shadowHorizontalOffset: 0
-                shadowVerticalOffset: 8
-                shadowBlur: 1.0
-                shadowColor: Qt.rgba(0, 0, 0, 0.4)
-                shadowOpacity: 0.7
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowHorizontalOffset: 0
+                    shadowVerticalOffset: 8
+                    shadowBlur: 1.0
+                    shadowColor: Qt.rgba(0, 0, 0, 0.4)
+                    shadowOpacity: 0.7
+                }
             }
 
             Behavior on height {
-                NumberAnimation { 
+                NumberAnimation {
                     duration: Anims.durShort
                     easing.type: Easing.BezierSpline
                     easing.bezierCurve: Anims.emphasizedDecel
                 }
             }
 
-            Behavior on opacity {
-                NumberAnimation { 
+            enter: Transition {
+                NumberAnimation {
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: Anims.durShort
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Anims.standard
+                }
+            }
+
+            exit: Transition {
+                NumberAnimation {
+                    property: "opacity"
+                    from: 1
+                    to: 0
                     duration: Anims.durShort
                     easing.type: Easing.BezierSpline
                     easing.bezierCurve: Anims.standard
