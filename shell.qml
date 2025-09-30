@@ -139,8 +139,11 @@ ShellRoot {
 
         active: false
 
+        property var modalRef: colorPickerModal
+
         ControlCenterPopout {
             id: controlCenterPopout
+            colorPickerModal: controlCenterLoader.modalRef
 
             onPowerActionRequested: (action, title, message) => {
                                         powerConfirmModalLoader.active = true

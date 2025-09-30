@@ -26,6 +26,7 @@ Column {
     property var currentRowWidgets: []
     property real currentRowWidth: 0
     property int expandedRowIndex: -1
+    property var colorPickerModal: null
 
     function calculateRowsAndWidgets() {
         return LayoutUtils.calculateRowsAndWidgets(root, expandedSection, expandedWidgetIndex)
@@ -132,6 +133,8 @@ Column {
                                 return widgetWidth <= 25 ? smallBatteryComponent : batteryPillComponent
                             } else if (id === "diskUsage") {
                                 return diskUsagePillComponent
+                            } else if (id === "colorPicker") {
+                                return colorPickerPillComponent
                             } else {
                                 return widgetWidth <= 25 ? smallToggleComponent : toggleButtonComponent
                             }
@@ -698,6 +701,18 @@ enabled: !root.editMode
                     root.expandClicked(widgetData, widgetIndex)
                 }
             }
+        }
+    }
+
+    Component {
+        id: colorPickerPillComponent
+        ColorPickerPill {
+            property var widgetData: parent.widgetData || {}
+            property int widgetIndex: parent.widgetIndex || 0
+            width: parent.width
+            height: 60
+
+            colorPickerModal: root.colorPickerModal
         }
     }
 }

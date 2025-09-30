@@ -153,6 +153,7 @@ DankPopout {
                     expandedWidgetData: root.expandedWidgetData
                     model: widgetModel
                     bluetoothCodecSelector: bluetoothCodecSelector
+                    colorPickerModal: root.colorPickerModal
                     onExpandClicked: (widgetData, globalIndex) => {
                         root.expandedWidgetIndex = globalIndex
                         root.expandedWidgetData = widgetData
@@ -222,4 +223,6 @@ DankPopout {
         id: batteryDetailComponent
         BatteryDetail {}
     }
+
+    property var colorPickerModal: null
 }
