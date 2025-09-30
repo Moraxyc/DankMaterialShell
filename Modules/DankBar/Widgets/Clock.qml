@@ -52,7 +52,7 @@ Rectangle {
                 }
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.primary
-                font.weight: Font.Medium
+                font.weight: Font.Normal
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -69,7 +69,7 @@ Rectangle {
                 }
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.primary
-                font.weight: Font.Medium
+                font.weight: Font.Normal
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -83,7 +83,7 @@ Rectangle {
                 text: String(systemClock?.date?.getMinutes()).padStart(2, '0').charAt(0)
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.primary
-                font.weight: Font.Medium
+                font.weight: Font.Normal
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -92,7 +92,7 @@ Rectangle {
                 text: String(systemClock?.date?.getMinutes()).padStart(2, '0').charAt(1)
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.primary
-                font.weight: Font.Medium
+                font.weight: Font.Normal
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -125,7 +125,12 @@ Rectangle {
                 }
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.surfaceText
-                font.weight: Font.Medium
+                font.weight: {
+                    const locale = Qt.locale()
+                    const dateFormatShort = locale.dateFormat(Locale.ShortFormat)
+                    const dayFirst = dateFormatShort.indexOf('d') < dateFormatShort.indexOf('M')
+                    return dayFirst ? Font.Normal : Font.Light
+                }
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -140,7 +145,12 @@ Rectangle {
                 }
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.surfaceText
-                font.weight: Font.Medium
+                font.weight: {
+                    const locale = Qt.locale()
+                    const dateFormatShort = locale.dateFormat(Locale.ShortFormat)
+                    const dayFirst = dateFormatShort.indexOf('d') < dateFormatShort.indexOf('M')
+                    return dayFirst ? Font.Normal : Font.Light
+                }
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -160,7 +170,12 @@ Rectangle {
                 }
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.surfaceText
-                font.weight: Font.Medium
+                font.weight: {
+                    const locale = Qt.locale()
+                    const dateFormatShort = locale.dateFormat(Locale.ShortFormat)
+                    const dayFirst = dateFormatShort.indexOf('d') < dateFormatShort.indexOf('M')
+                    return dayFirst ? Font.Light : Font.Normal
+                }
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -175,7 +190,12 @@ Rectangle {
                 }
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.surfaceText
-                font.weight: Font.Medium
+                font.weight: {
+                    const locale = Qt.locale()
+                    const dateFormatShort = locale.dateFormat(Locale.ShortFormat)
+                    const dayFirst = dateFormatShort.indexOf('d') < dateFormatShort.indexOf('M')
+                    return dayFirst ? Font.Light : Font.Normal
+                }
                 width: 9
                 horizontalAlignment: Text.AlignHCenter
             }
