@@ -140,7 +140,7 @@ PanelWindow {
 
         anchors.fill: parent
         visible: win.hasValidData
-        layer.enabled: (enterX.running || exitAnim.running)
+        layer.enabled: true
         layer.smooth: true
 
         Rectangle {

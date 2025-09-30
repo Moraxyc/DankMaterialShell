@@ -91,10 +91,11 @@ Rectangle {
                     }
 
                     if (root.isVertical) {
-                        const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (currentScreen.width - 400)
-                        tooltipLoader.item.show(tooltipText, screenX + tooltipX, relativeY, currentScreen, true)
+                        const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (currentScreen.width - Theme.barHeight - SettingsData.dankBarSpacing - Theme.spacingXS)
+                        const isLeft = root.axis?.edge === "left"
+                        tooltipLoader.item.show(tooltipText, screenX + tooltipX, relativeY, currentScreen, isLeft, !isLeft)
                     } else {
-                        tooltipLoader.item.show(tooltipText, relativeX, screenY + root.barThickness + SettingsData.dankBarSpacing + Theme.spacingXS, currentScreen, false)
+                        tooltipLoader.item.show(tooltipText, relativeX, screenY + root.barThickness + SettingsData.dankBarSpacing + Theme.spacingXS, currentScreen, false, false)
                     }
                 }
             }

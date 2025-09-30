@@ -415,7 +415,7 @@ Singleton {
         return send({
                         "Action": {
                             "DoScreenTransition": {
-                                "delay_ms": 100,
+                                "delay_ms": 250,
                             }
                         }
                     })

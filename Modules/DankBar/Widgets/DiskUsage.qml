@@ -122,8 +122,9 @@ Rectangle {
                     const screenX = currentScreen ? currentScreen.x : 0
                     const screenY = currentScreen ? currentScreen.y : 0
                     const relativeY = globalPos.y - screenY
-                    const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (currentScreen.width - 400)
-                    tooltipLoader.item.show(root.selectedMount.mount, screenX + tooltipX, relativeY, currentScreen, true)
+                    const tooltipX = root.axis?.edge === "left" ? (Theme.barHeight + SettingsData.dankBarSpacing + Theme.spacingXS) : (currentScreen.width - Theme.barHeight - SettingsData.dankBarSpacing - Theme.spacingXS)
+                    const isLeft = root.axis?.edge === "left"
+                    tooltipLoader.item.show(root.selectedMount.mount, screenX + tooltipX, relativeY, currentScreen, isLeft, !isLeft)
                 }
             }
         }
