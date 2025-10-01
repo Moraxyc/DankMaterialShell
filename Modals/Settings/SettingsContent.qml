@@ -34,28 +34,27 @@ Item {
         }
 
         Loader {
-            id: timeWeatherLoader
+            id: timeLoader
 
             anchors.fill: parent
             active: root.currentIndex === 1
             visible: active
             asynchronous: true
 
-            sourceComponent: TimeWeatherTab {
+            sourceComponent: TimeTab {
             }
 
         }
 
         Loader {
-            id: keybindsLoader
+            id: weatherLoader
 
             anchors.fill: parent
             active: root.currentIndex === 2
             visible: active
             asynchronous: true
 
-            sourceComponent: KeybindsTab {
-                parentModal: root.parentModal
+            sourceComponent: WeatherTab {
             }
 
         }

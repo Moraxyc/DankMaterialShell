@@ -12,11 +12,11 @@ Rectangle {
         "text": "Personalization",
         "icon": "person"
     }, {
-        "text": "Time & Weather",
+        "text": "Time & Date",
         "icon": "schedule"
     }, {
-        "text": "Key Bindings",
-        "icon": "keyboard"
+        "text": "Weather",
+        "icon": "cloud"
     }, {
         "text": "Dank Bar",
         "icon": "toolbar"
