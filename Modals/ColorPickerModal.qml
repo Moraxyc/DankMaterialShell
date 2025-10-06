@@ -68,173 +68,31 @@ DankModal {
 
     function pickColorFromScreen() {
         close()
-        eyedropperWindow.visible = true
-        eyedropperTimer.start()
+        hyprpickerProcess.running = true
     }
 
-    PanelWindow {
-        id: eyedropperWindow
+    Process {
+        id: hyprpickerProcess
+        running: false
+        command: ["hyprpicker", "--format=hex"]
 
-        property string screenshotPath: "/tmp/quickshell-eyedropper.png"
-        property point mousePos: Qt.point(0, 0)
-        property color hoveredColor: "transparent"
-
-        visible: false
-        color: "transparent"
-
-        WlrLayershell.layer: WlrLayershell.Overlay
-        WlrLayershell.exclusiveZone: -1
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-
-        anchors {
-            top: true
-            left: true
-            right: true
-            bottom: true
-        }
-
-        Timer {
-            id: eyedropperTimer
-            interval: 100
-            repeat: true
-            running: false
-            onTriggered: {
-                screenshotCapture.running = true
-            }
-        }
-
-        Process {
-            id: screenshotCapture
-            running: false
-            command: ["sh", "-c", `x=${Math.floor(eyedropperWindow.mousePos.x)}; y=${Math.floor(eyedropperWindow.mousePos.y)}; grim -g "$x,$y 1x1" -t ppm - 2>/dev/null | convert - -format '%[hex:p{0,0}]' txt:- 2>/dev/null | grep -o '#[0-9A-Fa-f]\\{6\\}'`]
-
-            stdout: SplitParser {
-                onRead: data => {
-                    const colorStr = data.trim()
-                    if (colorStr.length >= 7 && colorStr.startsWith('#')) {
-                        eyedropperWindow.hoveredColor = colorStr
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            id: magnifier
-            width: 140
-            height: 180
-            radius: Theme.cornerRadius
-            color: Theme.surfaceContainer
-            border.color: Theme.outlineStrong
-            border.width: 2
-            x: eyedropperWindow.mousePos.x + 30
-            y: eyedropperWindow.mousePos.y + 30
-            z: 100
-
-            Column {
-                anchors.fill: parent
-                anchors.margins: Theme.spacingS
-                spacing: Theme.spacingS
-
-                Rectangle {
-                    width: parent.width
-                    height: 80
-                    radius: Theme.cornerRadius
-                    color: eyedropperWindow.hoveredColor
-                    border.color: Theme.outlineStrong
-                    border.width: 1
-                }
-
-                StyledText {
-                    width: parent.width
-                    text: eyedropperWindow.hoveredColor.toString()
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.family: "monospace"
-                    color: Theme.surfaceText
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                StyledText {
-                    width: parent.width
-                    text: "Click to copy"
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.surfaceTextMedium
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                StyledText {
-                    width: parent.width
-                    text: "ESC to cancel"
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.surfaceTextMedium
-                    horizontalAlignment: Text.AlignHCenter
-                }
-            }
-        }
-
-        Rectangle {
-            width: 20
-            height: 2
-            color: "white"
-            x: eyedropperWindow.mousePos.x - 10
-            y: eyedropperWindow.mousePos.y
-            z: 99
-
-            Rectangle {
-                anchors.fill: parent
-                color: "black"
-                anchors.margins: -0.5
-                z: -1
-            }
-        }
-
-        Rectangle {
-            width: 2
-            height: 20
-            color: "white"
-            x: eyedropperWindow.mousePos.x
-            y: eyedropperWindow.mousePos.y - 10
-            z: 99
-
-            Rectangle {
-                anchors.fill: parent
-                color: "black"
-                anchors.margins: -0.5
-                z: -1
-            }
-        }
-
-        FocusScope {
-            anchors.fill: parent
-            focus: true
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.BlankCursor
-
-                onPositionChanged: mouse => {
-                    eyedropperWindow.mousePos = Qt.point(mouse.x, mouse.y)
-                }
-
-                onClicked: mouse => {
-                    const hexColor = eyedropperWindow.hoveredColor.toString()
-                    copyColorToClipboard(hexColor)
-                    root.currentColor = eyedropperWindow.hoveredColor
-                    root.updateFromColor(eyedropperWindow.hoveredColor)
-                    eyedropperTimer.stop()
-                    eyedropperWindow.visible = false
+        stdout: SplitParser {
+            onRead: data => {
+                const colorStr = data.trim()
+                if (colorStr.length >= 7 && colorStr.startsWith('#')) {
+                    root.currentColor = colorStr
+                    root.updateFromColor(root.currentColor)
+                    copyColorToClipboard(colorStr)
                     root.open()
                 }
             }
+        }
 
-            Keys.onEscapePressed: event => {
-                eyedropperTimer.stop()
-                eyedropperWindow.visible = false
-                root.open()
-                event.accepted = true
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                console.warn("hyprpicker exited with code:", exitCode)
             }
-
-            Component.onCompleted: forceActiveFocus()
+            root.open()
         }
     }
 
@@ -499,31 +357,40 @@ DankModal {
                                 font.pixelSize: Theme.fontSizeMedium
                                 color: Theme.surfaceText
                                 font.weight: Font.Medium
-                                visible: root.recentColors.length > 0
                             }
 
                             Row {
                                 width: parent.width
                                 spacing: Theme.spacingXS
-                                visible: root.recentColors.length > 0
 
                                 Repeater {
-                                    model: root.recentColors
+                                    model: 5
 
                                     Rectangle {
                                         width: 36
                                         height: 36
                                         radius: 4
-                                        color: modelData
                                         border.color: Theme.outlineStrong
                                         border.width: 1
 
+                                        color: {
+                                            if (index < root.recentColors.length) {
+                                                return root.recentColors[index]
+                                            }
+                                            return Theme.surfaceContainerHigh
+                                        }
+
+                                        opacity: index < root.recentColors.length ? 1.0 : 0.3
+
                                         MouseArea {
                                             anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
+                                            cursorShape: index < root.recentColors.length ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                            enabled: index < root.recentColors.length
                                             onClicked: () => {
-                                                root.currentColor = modelData
-                                                root.updateFromColor(root.currentColor)
+                                                if (index < root.recentColors.length) {
+                                                    root.currentColor = root.recentColors[index]
+                                                    root.updateFromColor(root.currentColor)
+                                                }
                                             }
                                         }
                                     }
